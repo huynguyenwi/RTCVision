@@ -1,0 +1,1204 @@
+﻿using DevExpress.XtraEditors;
+using HalconDotNet;
+using RTCVision.Consts;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+
+namespace RTCVision
+{
+    public partial class FrmVisionSettings : DevExpress.XtraEditors.XtraForm
+    {
+        public FrmVisionSettings()
+        {
+            InitializeComponent();
+        }
+
+        private const int _roundNumber = 3;
+
+        private Guid _currentModelId;
+
+        public Guid CurrentModelId
+        {
+            get => _currentModelId;
+            set
+            {
+                _currentModelId = value;
+                LoadModelInfo();
+            }
+        }
+
+        private string _interfaceName = string.Empty;
+        private string _deviceName = string.Empty;
+        private List<Device> _devices = null;
+        private HImage _hImage = null;
+        private HTuple _frameGrabber;
+        public HTuple FrameGrabber => _frameGrabber;
+        private Region _matchingTrainRegion = null;
+        private Region _matchingFindRegion = null;
+        private HDrawingObject _drawingObjectRegion;
+        private string _currentRegionType = string.Empty;
+
+
+        private HObject _matchingImageMaster = null;
+        private double _matchingMinScore = 0.6;
+        private int _matchingNumMatches = 1;
+        private HTuple _matchingIn_ModelID = new HTuple();
+        private HTuple _matchingIn_Origin = new HTuple();
+        private HTuple _matchingOut_Origin = new HTuple();
+        private HTuple _matchingOut_ModelID = new HTuple();
+        private HTuple _matchingOut_Row = new HTuple();
+        private HTuple _matchingOut_Column = new HTuple();
+        private HTuple _matchingOut_Angle = new HTuple();
+        private HTuple _matchingOut_Score = new HTuple();
+        private HTuple _matchingOut_ActualNumberMatches = new HTuple();
+        private HTuple _matchingException = new HTuple();
+        private HTuple _matchingPass = new HTuple();
+        private HTuple _matchingTrained = new HTuple();
+
+        private HObject _matchingOut_ContoursTrain = new HObject();
+        private HObject _matchingOut_ContoursFind = new HObject();
+
+        private string _ipAddress = "127.0.0.1";
+        private int _portNumber = 4000;
+        private string _triggerValue = "C";
+
+
+        private HWindow _Window;
+        bool _isLive = false;
+        public int ProgramID;
+        int _olsPosition = 0;
+        bool _isNew = false;
+
+        #region FUNCTIONS
+
+        private void SaveTriggerInfo()
+        {
+            // Lưu trữ thông số matching
+            Lib.ExecuteQuery(
+                $"DELETE FROM {CTableName.TriggerSettings} WHERE {CColName.ModelId} = '{CurrentModelId}'");
+            Lib.ExecuteQuery($"INSERT INTO {CTableName.TriggerSettings} VALUES('{CurrentModelId}','{_ipAddress}',{_portNumber},'{_triggerValue}')");
+        }
+        private void LoadTriggerInfo()
+        {
+            _ipAddress = Lib.ExecuteScalar($"SELECT {CColName.IpAddress} FROM {CTableName.TriggerSettings} WHERE {CColName.ModelId}='{CurrentModelId}'").ToString();
+            _portNumber = Lib.ToInt(Lib.ExecuteScalar(
+                $"SELECT {CColName.PortNumber} FROM {CTableName.TriggerSettings} WHERE {CColName.ModelId}='{CurrentModelId}'"));
+            _triggerValue = Lib.ExecuteScalar($"SELECT {CColName.TriggerValue} FROM {CTableName.TriggerSettings} WHERE {CColName.ModelId}='{CurrentModelId}'").ToString();
+
+            txtIpCom.Text = _ipAddress;
+            txtPortBaudrate.Text = _portNumber.ToString();
+            txtTriggerValue.Text = _triggerValue;
+        }
+
+        /// <summary>
+        /// Lấy thông tin model hiển thị lên cửa sổ
+        /// </summary>
+        private void LoadModelInfo()
+        {
+            string modelName = Lib.ExecuteScalar($"SELECT ModelName FROM Models WHERE ID='{CurrentModelId}'").ToString();
+            txtModelName.Text = modelName;
+            // Lấy thông tin camera
+            LoadCameraInfo();
+
+            LoadAllRegions();
+
+            ViewRoiInfo(true);
+
+            EnableDisableControls();
+
+            LoadMatchingOptions();
+
+            LoadDict();
+
+            LoadTriggerInfo();
+        }
+        /// <summary>
+        /// Lấy thông tin camera
+        /// </summary>
+        private void LoadCameraInfo()
+        {
+            _interfaceName = Lib.ExecuteScalar($"SELECT InterfaceName FROM ModelCam WHERE ModelID='{CurrentModelId}'").ToString();
+            _deviceName = Lib.ExecuteScalar($"SELECT DeviceName FROM ModelCam WHERE ModelID='{CurrentModelId}'").ToString();
+            cbInterface.Properties.Items.Clear();
+            cbDevice.Properties.Items.Clear();
+            cbInterface.Text = _interfaceName;
+            cbDevice.Text = _deviceName;
+        }
+
+        private void ViewMatchingOptions()
+        {
+            txtMatchingMinScore.Text = _matchingMinScore.ToString();
+            txtMatchingNumMatches.Text = _matchingNumMatches.ToString();
+        }
+        /// <summary>
+        /// Lấy thông số thiết lập matching
+        /// </summary>
+        private void LoadMatchingOptions()
+        {
+            DataTable dataTable =
+                Lib.GetTableData($"SELECT * FROM {CTableName.Matching} WHERE {CColName.ModelId} = '{CurrentModelId}'");
+            if (dataTable != null && dataTable.Rows.Count > 0)
+            {
+                _matchingMinScore = Lib.ToDouble(dataTable.Rows[0][CColName.In_MinScore]);
+                _matchingNumMatches = Lib.ToInt(dataTable.Rows[0][CColName.In_NumMatches]);
+            }
+            else
+            {
+                _matchingMinScore = 0.6;
+                _matchingNumMatches = 1;
+            }
+
+            ViewMatchingOptions();
+        }
+
+        private void LoadDict()
+        {
+            _matchingOut_ModelID = new HTuple();
+
+            string hdictFileName = Path.Combine(Application.StartupPath, "Iconic.hdict");
+
+            HTuple dict = null;
+
+            if (File.Exists(hdictFileName))
+            {
+                HOperatorSet.ReadDict(hdictFileName, new HTuple(), new HTuple(), out dict);
+                HOperatorSet.GetDictTuple(dict, CurrentModelId.ToString() + "MatchingModelID", out _matchingOut_ModelID);
+                HOperatorSet.GetDictObject(out _matchingImageMaster, dict, CurrentModelId.ToString() + "MatchingImageMaster");
+            }
+        }
+        /// <summary>
+        /// Lấy toàn bộ các camera đang kết nối trên máy
+        /// </summary>
+        /// <returns></returns>
+        private List<string> GetAvailableInterface()
+        {
+            _devices = new List<Device>();
+
+            // Detect the HALCON binary folder
+            List<string> availableInterfaces = new List<string>();
+            string halconRoot = Environment.GetEnvironmentVariable("HALCONROOT");
+            string halconArch = Environment.GetEnvironmentVariable("HALCONARCH");
+
+            string a = halconRoot + "/bin/" + halconArch;
+
+            // Querry all available interfaces
+            var acquisitionInterfaces = Directory.EnumerateFiles(a, "hacq*.dll");
+
+            // For each Interface (check for non XL version) we test with InfoFramegrabber if devices are connected
+            foreach (string item in acquisitionInterfaces)
+            {
+                //HOperatorSet.CountSeconds(out HTuple StartTime);
+                // Extract the interface name with an regular expression
+                string interfaceName = Regex.Match(item, "hAcq(.+)(?:\\.dll)").Groups[1].Value;
+                if (interfaceName == "DirectFile") continue;
+                if (interfaceName == "File")
+                {
+                    Device device = new Device
+                    {
+                        InterfaceName = interfaceName,
+                        DeviceName = cbDevice.Text
+                    };
+                    _devices.Add(device);
+
+                    availableInterfaces.Add(interfaceName);
+                    continue;
+                }
+                try
+                {
+                    // Querry available devices
+                    HTuple devices;
+                    HOperatorSet.InfoFramegrabber(interfaceName, "info_boards", out HTuple info, out devices);
+                    //HInfo.InfoFramegrabber();
+                    // In case that devices were found add it to the available interfaces
+                    if (devices.Length > 0)
+                    {
+                        foreach (var itemDevice in devices.SArr)
+                        {
+                            Device device = new Device
+                            {
+                                InterfaceName = interfaceName,
+                                DeviceName = itemDevice
+                            };
+                            _devices.Add(device);
+                        }
+                        availableInterfaces.Add(interfaceName);
+                    }
+                }
+                catch (Exception ex)
+                { }
+
+            }
+
+            return availableInterfaces;
+        }
+
+        private void LoadAllRegions()
+        {
+            _matchingTrainRegion = null;
+            _matchingFindRegion = null;
+            DataTable dataTable =
+                Lib.GetTableData($"SELECT * FROM {CTableName.Regions} WHERE {CColName.ModelId} = '{CurrentModelId}'");
+            if (dataTable != null)
+                foreach (DataRow row in dataTable.Rows)
+                {
+                    string regionType = Lib.ToString(row[CColName.RegionType]);
+                    switch (regionType)
+                    {
+                        case CRegionType.MTrain:
+                            {
+                                _matchingTrainRegion = new Region
+                                {
+                                    Row = Lib.ToDouble(row[CColName.Row]),
+                                    Col = Lib.ToDouble(row[CColName.Col]),
+                                    Width = Lib.ToDouble(row[CColName.Width]),
+                                    Height = Lib.ToDouble(row[CColName.Height]),
+                                    Phi = Lib.ToDouble(row[CColName.Phi])
+                                };
+                                break;
+                            }
+                        case CRegionType.MFind:
+                            {
+                                _matchingFindRegion = new Region
+                                {
+                                    Row = Lib.ToDouble(row[CColName.Row]),
+                                    Col = Lib.ToDouble(row[CColName.Col]),
+                                    Width = Lib.ToDouble(row[CColName.Width]),
+                                    Height = Lib.ToDouble(row[CColName.Height]),
+                                    Phi = Lib.ToDouble(row[CColName.Phi])
+                                };
+                                break;
+                            }
+                    }
+                }
+        }
+
+        private void EnableDisableControls_MatchingFind()
+        {
+            btnViewRoiFindM.Enabled = _matchingFindRegion != null;
+            btnAddRoiFindM.Enabled = _matchingFindRegion == null;
+            btnDeleteRoiFindM.Enabled = _matchingFindRegion != null;
+        }
+        private void EnableDisableControls_MatchingTrain()
+        {
+            btnViewRoiTrainM.Enabled = _matchingTrainRegion != null;
+            btnAddRoiTrainM.Enabled = _matchingTrainRegion == null;
+            btnDeleteRoiTrainM.Enabled = _matchingTrainRegion != null;
+        }
+        private void EnableDisableControls()
+        {
+            EnableDisableControls_MatchingTrain();
+            EnableDisableControls_MatchingFind();
+        }
+        /// <summary>
+        /// Lấy thông tin của roi khi di chuyển, thay đổi kích thước
+        /// </summary>
+        /// <param name="drawingObject">Đối tượng Roi đang tác động</param>
+        /// <param name="hWindow">Cửa sổ hiển thị</param>
+        /// <param name="type">Kiểu roi</param>
+        private void GetPosition(HDrawingObject drawingObject, HWindow hWindow, string type)
+        {
+            HTuple values = new HTuple(drawingObject.GetDrawingObjectParams(new HTuple(new string[] { "row", "column", "phi", "length1", "length2" })));
+            double[] arrPosition = values.ToDArr();
+
+            switch (_currentRegionType)
+            {
+                case CRegionType.MTrain:
+                    {
+                        _matchingTrainRegion.Row = Math.Round(arrPosition[0], _roundNumber);
+                        _matchingTrainRegion.Col = Math.Round(arrPosition[1], _roundNumber);
+                        _matchingTrainRegion.Phi = Math.Round(arrPosition[2], _roundNumber);
+                        _matchingTrainRegion.Width = Math.Round(arrPosition[3], _roundNumber);
+                        _matchingTrainRegion.Height = Math.Round(arrPosition[4], _roundNumber);
+
+                        ViewRoiInfo_MTrain();
+                        break;
+                    }
+                case CRegionType.MFind:
+                    {
+                        _matchingFindRegion.Row = Math.Round(arrPosition[0], _roundNumber);
+                        _matchingFindRegion.Col = Math.Round(arrPosition[1], _roundNumber);
+                        _matchingFindRegion.Phi = Math.Round(arrPosition[2], _roundNumber);
+                        _matchingFindRegion.Width = Math.Round(arrPosition[3], _roundNumber);
+                        _matchingFindRegion.Height = Math.Round(arrPosition[4], _roundNumber);
+                        ViewRoiInfo_MFind();
+                        break;
+                    }
+            }
+        }
+
+        private void ViewRoiInfo_MFind()
+        {
+            txtMFindRoiR.Enabled = true;
+            txtMFindRoiC.Enabled = true;
+            txtMFindRoiPhi.Enabled = true;
+            txtMFindRoiW.Enabled = true;
+            txtMFindRoiH.Enabled = true;
+
+            if (_matchingFindRegion != null)
+            {
+                txtMFindRoiR.Text = _matchingFindRegion.Row.ToString();
+                txtMFindRoiC.Text = _matchingFindRegion.Col.ToString();
+                txtMFindRoiPhi.Text = _matchingFindRegion.Phi.ToString();
+                txtMFindRoiW.Text = _matchingFindRegion.Width.ToString();
+                txtMFindRoiH.Text = _matchingFindRegion.Height.ToString();
+            }
+            else
+            {
+                txtMFindRoiR.Enabled = false;
+                txtMFindRoiC.Enabled = false;
+                txtMFindRoiPhi.Enabled = false;
+                txtMFindRoiW.Enabled = false;
+                txtMFindRoiH.Enabled = false;
+            }
+        }
+        private void ViewRoiInfo_MTrain()
+        {
+            txtMTrainRoiR.Enabled = true;
+            txtMTrainRoiC.Enabled = true;
+            txtMTrainRoiPhi.Enabled = true;
+            txtMTrainRoiW.Enabled = true;
+            txtMTrainRoiH.Enabled = true;
+            if (_matchingTrainRegion != null)
+            {
+                txtMTrainRoiR.Text = _matchingTrainRegion.Row.ToString();
+                txtMTrainRoiC.Text = _matchingTrainRegion.Col.ToString();
+                txtMTrainRoiPhi.Text = _matchingTrainRegion.Phi.ToString();
+                txtMTrainRoiW.Text = _matchingTrainRegion.Width.ToString();
+                txtMTrainRoiH.Text = _matchingTrainRegion.Height.ToString();
+            }
+            else
+            {
+                txtMTrainRoiR.Enabled = false;
+                txtMTrainRoiC.Enabled = false;
+                txtMTrainRoiPhi.Enabled = false;
+                txtMTrainRoiW.Enabled = false;
+                txtMTrainRoiH.Enabled = false;
+            }
+        }
+        private void ViewRoiInfo(bool all = false)
+        {
+            if (all)
+            {
+                ViewRoiInfo_MTrain();
+                ViewRoiInfo_MFind();
+            }
+            else
+                switch (_currentRegionType)
+                {
+                    case CRegionType.MTrain:
+                        {
+                            ViewRoiInfo_MTrain();
+                            break;
+                        }
+                    case CRegionType.MFind:
+                        {
+                            ViewRoiInfo_MFind();
+                            break;
+                        }
+                }
+        }
+
+        private void SnapImage()
+        {
+            _hImage = GlobFunc.SnapImage(_frameGrabber);
+            if (_hImage != null && _hImage.Key != IntPtr.Zero)
+            {
+                Lib.SmartSetPart(_hImage, HWindowsMain);
+                HWindowsMain.HalconWindow.DispImage(_hImage);
+            }
+        }
+        public void ResetControls()
+        {
+            _Window.ClearWindow();
+        }
+        public HWindow GetHalconWindow()
+        {
+            return _Window;
+        }
+        private void BackgroundWorkerLiveWebCam_DoWork(object sender,
+            DoWorkEventArgs e)
+        {
+            while (_isLive)
+            {
+                HOperatorSet.GrabImageAsync(out var hObject, _frameGrabber, -1);
+                if (hObject != null && hObject.Key != IntPtr.Zero)
+                {
+                    Lib.SmartSetPart(hObject, HWindowsMain);
+                    HWindowsMain.HalconWindow.DispObj(hObject);
+                }
+                if (_interfaceName == "File")
+                    Thread.Sleep(150);
+            }
+        }
+        private void LiveCamera()
+        {
+            if (_isLive)
+            {
+                var backgroundWorker = new BackgroundWorker();
+                backgroundWorker.DoWork += BackgroundWorkerLiveWebCam_DoWork;
+                backgroundWorker.RunWorkerAsync();
+            }
+        }
+
+        private void RunMatchingModel(bool withSnap = true)
+        {
+            try
+            {
+                if (withSnap)
+                    SnapImage();
+
+                if (_hImage == null || _hImage.Key == IntPtr.Zero)
+                {
+                    MessageBox.Show("Run Matching Failed!!!.\nImage can't empty.", "Warning", MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning);
+                    return;
+                }
+
+                if (_matchingOut_ModelID == null || _matchingOut_ModelID.H == null ||
+                    _matchingOut_ModelID.H == IntPtr.Zero)
+                {
+                    MessageBox.Show("Run Matching Failed!!!.\nPlease train before run.", "Warning", MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning);
+                    return;
+                }
+                // Kiểm tra xem đã train hay chưa
+                ViewRoiFindM();
+
+                HDevProcedure procedure = new HDevProcedure("Matching");
+                HDevProcedureCall procedureCall = new HDevProcedureCall(procedure);
+
+                procedureCall.SetInputIconicParamObject("Image", _hImage);
+                if (_drawingObjectRegion != null)
+                    procedureCall.SetInputIconicParamObject("In_Roi", _drawingObjectRegion.GetDrawingObjectIconic());
+                else
+                {
+                    //procedureCall.SetInputIconicParamObject("In_Roi", new HObject()); // Câu lệnh gây lỗi làm ví dụ
+
+                    HOperatorSet.GenEmptyObj(out HObject emptyObject);
+                    procedureCall.SetInputIconicParamObject("In_Roi", emptyObject);
+                }
+
+                procedureCall.SetInputCtrlParamTuple("Select_Mode", "Run");
+                procedureCall.SetInputCtrlParamTuple("In_ModelID", _matchingOut_ModelID);
+                procedureCall.SetInputCtrlParamTuple("In_MinScore", _matchingMinScore);
+                procedureCall.SetInputCtrlParamTuple("In_NumMatches", _matchingNumMatches);
+                procedureCall.SetInputCtrlParamTuple("In_Origin", _matchingIn_Origin);
+
+                //GlobVar.MyEngine.StartDebugServer();
+
+                procedureCall.Execute();
+
+                //GlobVar.MyEngine.StopDebugServer();
+
+                _matchingOut_Row = procedureCall.GetOutputCtrlParamTuple("Out_Row");
+                _matchingOut_Column = procedureCall.GetOutputCtrlParamTuple("Out_Column");
+                _matchingOut_Angle = procedureCall.GetOutputCtrlParamTuple("Out_Angle");
+                _matchingOut_Score = procedureCall.GetOutputCtrlParamTuple("Out_Score");
+                _matchingException = procedureCall.GetOutputCtrlParamTuple("Exception");
+                _matchingPass = procedureCall.GetOutputCtrlParamTuple("Pass");
+                _matchingOut_ActualNumberMatches = procedureCall.GetOutputCtrlParamTuple("Out_ActualNumberMatches");
+
+                _matchingOut_ContoursFind = procedureCall.GetOutputIconicParamObject("Out_ContoursFind");
+
+                if (_matchingPass.I == 1)
+                {
+                    HWindowsMain.HalconWindow.SetColor("green");
+                    HWindowsMain.HalconWindow.SetDraw("margin");
+                    HWindowsMain.HalconWindow.SetLineWidth(2);
+                    lblPassFailM.Text = "Passed";
+                    lblPassFailM.ForeColor = Color.Green;
+                }
+                else
+                {
+                    HWindowsMain.HalconWindow.SetColor("red");
+                    HWindowsMain.HalconWindow.SetDraw("margin");
+                    HWindowsMain.HalconWindow.SetLineWidth(2);
+
+                    lblPassFailM.Text = "Failed";
+                    lblPassFailM.ForeColor = Color.Red;
+
+                    string errMessage = GlobFunc.HTuple2Str(_matchingException);
+                    if (!string.IsNullOrEmpty(errMessage))
+                        MessageBox.Show($"Run Matching Failed!!!\n{errMessage}", "Warning", MessageBoxButtons.OK,
+                            MessageBoxIcon.Warning);
+                    //else
+                    //    MessageBox.Show("Run Matching Failed!!!", "Warning", MessageBoxButtons.OK,
+                    //        MessageBoxIcon.Warning);
+
+                }
+
+                lblActualM.Text = "Actual: " + GlobFunc.HTuple2Str(_matchingOut_ActualNumberMatches);
+                HWindowsMain.HalconWindow.ClearWindow();
+                HWindowsMain.HalconWindow.DispImage(_hImage);
+                if (_matchingOut_ContoursFind != null && _matchingOut_ContoursFind.Key != IntPtr.Zero)
+                    HWindowsMain.HalconWindow.DispObj(_matchingOut_ContoursFind);
+            }
+            catch (HDevEngineException ex)
+            {
+                MessageBox.Show($"Run Matching Failed!!!\n{ex.Message}\n{ex.StackTrace}", "Error", MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Run Matching Failed!!!\n{ex.Message}\n{ex.StackTrace}", "Error", MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+            }
+        }
+        private void TrainMatchingModel()
+        {
+            try
+            {
+                if (_hImage == null || _hImage.Key == IntPtr.Zero)
+                {
+                    MessageBox.Show("Train Matching Failed!!!.\nImage can't empty.", "Warning", MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning);
+                    return;
+                }
+
+                ViewRoiTrainM();
+
+                HDevProcedure procedure = new HDevProcedure("Matching");
+                HDevProcedureCall procedureCall = new HDevProcedureCall(procedure);
+
+                procedureCall.SetInputIconicParamObject("Image", _hImage);
+                procedureCall.SetInputIconicParamObject("In_Roi", _drawingObjectRegion.GetDrawingObjectIconic());
+
+                procedureCall.SetInputCtrlParamTuple("Select_Mode", "Train");
+                procedureCall.SetInputCtrlParamTuple("In_ModelID", _matchingIn_ModelID);
+                procedureCall.SetInputCtrlParamTuple("In_MinScore", _matchingMinScore);
+                procedureCall.SetInputCtrlParamTuple("In_NumMatches", _matchingNumMatches);
+                procedureCall.SetInputCtrlParamTuple("In_Origin", _matchingIn_Origin);
+
+                procedureCall.Execute();
+
+                _matchingOut_Origin = procedureCall.GetOutputCtrlParamTuple("Out_Origin");
+                _matchingOut_ModelID = procedureCall.GetOutputCtrlParamTuple("Out_ModelID");
+                _matchingOut_Row = procedureCall.GetOutputCtrlParamTuple("Out_Row");
+                _matchingOut_Column = procedureCall.GetOutputCtrlParamTuple("Out_Column");
+                _matchingOut_Angle = procedureCall.GetOutputCtrlParamTuple("Out_Angle");
+                _matchingOut_Score = procedureCall.GetOutputCtrlParamTuple("Out_Score");
+                _matchingException = procedureCall.GetOutputCtrlParamTuple("Exception");
+                _matchingPass = procedureCall.GetOutputCtrlParamTuple("Pass");
+
+                _matchingOut_ContoursTrain = procedureCall.GetOutputIconicParamObject("Out_ContoursTrain");
+
+                if (_matchingPass.I == 1)
+                {
+                    MessageBox.Show("Train Matching Success!!!", "Information", MessageBoxButtons.OK,
+                        MessageBoxIcon.Information);
+
+                    HWindowsMain.HalconWindow.SetColor("cyan");
+                    HWindowsMain.HalconWindow.SetDraw("margin");
+                    HWindowsMain.HalconWindow.SetLineWidth(2);
+
+                    HWindowsMain.HalconWindow.ClearWindow();
+                    HWindowsMain.HalconWindow.DispImage(_hImage);
+                    HWindowsMain.HalconWindow.DispObj(_matchingOut_ContoursTrain);
+
+                    _matchingImageMaster = _hImage.CopyImage();
+                }
+                else
+                {
+                    if (!string.IsNullOrEmpty(_matchingException.S))
+                        MessageBox.Show($"Train Matching Failed!!!\n{_matchingException.S}", "Warning", MessageBoxButtons.OK,
+                            MessageBoxIcon.Warning);
+                    else
+                        MessageBox.Show("Train Matching Failed!!!", "Warning", MessageBoxButtons.OK,
+                            MessageBoxIcon.Warning);
+                }
+            }
+            catch (HDevEngineException ex)
+            {
+                MessageBox.Show($"{ex.Message}\n{ex.StackTrace}", "Error", MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"{ex.Message}\n{ex.StackTrace}", "Error", MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+            }
+        }
+
+        private void SaveMatchingData_Roi()
+        {
+            Lib.ExecuteQuery(
+                $"DELETE FROM Regions WHERE {CColName.ModelId} = '{CurrentModelId}' AND {CColName.RegionType} = '{CRegionType.MTrain}'");
+            if (_matchingTrainRegion != null)
+                Lib.ExecuteQuery($"INSERT INTO Regions VALUES('{CurrentModelId}','{CRegionType.MTrain}'," +
+                                 $" {_matchingTrainRegion.Row}, {_matchingTrainRegion.Col}," +
+                                 $" {_matchingTrainRegion.Phi}, {_matchingTrainRegion.Width}, {_matchingTrainRegion.Height})");
+
+            Lib.ExecuteQuery(
+                $"DELETE FROM Regions WHERE {CColName.ModelId} = '{CurrentModelId}' AND {CColName.RegionType} = '{CRegionType.MFind}'");
+            if (_matchingFindRegion != null)
+                Lib.ExecuteQuery($"INSERT INTO Regions VALUES('{CurrentModelId}', '{CRegionType.MFind}'," +
+                                 $" {_matchingFindRegion.Row}, {_matchingFindRegion.Col}," +
+                                 $" {_matchingFindRegion.Phi}, {_matchingFindRegion.Width}, {_matchingFindRegion.Height})");
+        }
+        private void SaveMatchingData()
+        {
+            try
+            {
+                // Lưu trữ thông tin ROI
+                SaveMatchingData_Roi();
+                // Lưu trữ thông số matching
+                Lib.ExecuteQuery(
+                    $"DELETE FROM Matching WHERE {CColName.ModelId} = '{CurrentModelId}'");
+                Lib.ExecuteQuery($"INSERT INTO Matching VALUES('{CurrentModelId}',{_matchingMinScore},{_matchingNumMatches})");
+
+                // Lưu trữ thông tin train matching
+                string hdictFileName = Path.Combine(Application.StartupPath, "Iconic.hdict");
+
+                HTuple dict = null;
+
+                if (File.Exists(hdictFileName))
+                    HOperatorSet.ReadDict(hdictFileName, new HTuple(), new HTuple(), out dict);
+                else
+                    HOperatorSet.CreateDict(out dict);
+
+                if (_matchingOut_ModelID == null)
+                    _matchingOut_ModelID = new HTuple();
+
+                HOperatorSet.SetDictTuple(dict, CurrentModelId.ToString() + "MatchingModelID", _matchingOut_ModelID);
+                HOperatorSet.SetDictObject(_matchingImageMaster, dict, CurrentModelId.ToString() + "MatchingImageMaster");
+
+                HOperatorSet.WriteDict(dict, hdictFileName, new HTuple(), new HTuple());
+
+                MessageBox.Show("Save Matching Data Is Success", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show($"{e.Message}\n{e.StackTrace}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        #endregion
+
+        private void btnDetect_Click(object sender, EventArgs e)
+        {
+            /*cbInterface.Items.Clear();
+            List<string> interfaces = GetAvailableInterface();
+            foreach (string item in interfaces)
+                cbInterface.Items.Add(item);
+            if (interfaces.Count > 0)
+                cbInterface.SelectedIndex = (interfaces.Count - 1);*/
+
+            cbInterface.Properties.Items.Clear(); 
+
+            List<string> interfaces = GetAvailableInterface();
+
+            foreach (string item in interfaces)
+                cbInterface.Properties.Items.Add(item); 
+
+            if (interfaces.Count > 0)
+                cbInterface.SelectedIndex = interfaces.Count - 1;
+        }
+
+        private void btnLive_Click(object sender, EventArgs e)
+        {
+            if (_frameGrabber == null) return;
+            if (!_isLive)
+            {
+                _isLive = true;
+                LiveCamera();
+                btnSnap.Enabled = false;
+            }
+            else
+            {
+                _isLive = false;
+                btnSnap.Enabled = true;
+            }
+        }
+
+
+        private void cbInterface_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            /*            string interfaceName = Lib.ToString(cbInterface.SelectedItem);
+                        List<Device> devices = _devices.Where(o => o.InterfaceName == interfaceName).ToList();
+                        cbDevice.DataSource = devices;
+                        cbDevice.DisplayMember = "DeviceName";
+                        cbDevice.ValueMember = "DeviceName";*/
+
+           
+            string interfaceName = Lib.ToString(cbInterface.SelectedItem);
+            List<Device> devices = _devices.Where(o => o.InterfaceName == interfaceName).ToList();
+            cbDevice.Properties.Items.Clear();
+            foreach (var device in devices)
+            {
+                cbDevice.Properties.Items.Add(device.DeviceName);
+            }
+            if (devices.Count > 0)
+                cbDevice.SelectedIndex = 0;
+
+        }
+
+        private void btnConnectCamera_Click(object sender, EventArgs e)
+        {
+            string errMessage = string.Empty;
+
+            if (cbDevice.Text.Trim() == "")
+            {
+                MessageBox.Show("Please choose a Interface!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+            if (cbDevice.Text.Trim() == "")
+            {
+                MessageBox.Show("Please choose a Camera!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error); ;
+                return;
+            }
+
+            if (btnConnectCamera.Text.ToLower() == "Connect".ToLower())
+            {
+                _interfaceName = cbInterface.Text;
+                _deviceName = cbDevice.Text;
+
+                if (!GlobFunc.ConnectCamera(_interfaceName, _deviceName, out _frameGrabber, out errMessage))
+                {
+                    MessageBox.Show(errMessage, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+
+                btnConnectCamera.Text = "Disconnect";
+                btnConnectCamera.BackColor = Color.Green;
+                btnSnap.Enabled = true;
+                btnLive.Enabled = true;
+                SnapImage();
+            }
+            else
+            {
+                if (_isLive)
+                    btnLive_Click(null, null);
+
+                Thread.Sleep(1000);
+                GlobFunc.DisconnectCamera(_frameGrabber);
+
+                btnConnectCamera.Text = "Connect";
+                btnConnectCamera.BackColor = SystemColors.ButtonFace;
+
+                btnLive.BackColor = SystemColors.Control;
+                cbInterface.Enabled = cbDevice.Enabled = btnDetect.Enabled = true;
+                btnLive.Enabled = btnSnap.Enabled = false;
+                _hImage?.Dispose();
+                HWindowsMain.HalconWindow.DetachBackgroundFromWindow();
+                HWindowsMain.HalconWindow.ClearWindow();
+            }
+
+        }
+        private void my_MouseWheel(object sender, MouseEventArgs e)
+        {
+            Point pt = HWindowsMain.Location;
+            MouseEventArgs newe = new MouseEventArgs(e.Button, e.Clicks, e.X - pt.X, e.Y - pt.Y, e.Delta);
+            HWindowsMain.HSmartWindowControl_MouseWheel(sender, newe);
+        }
+        private void HWindowsMain_Load(object sender, EventArgs e)
+        {
+            _Window = HWindowsMain.HalconWindow;
+            this.MouseWheel += my_MouseWheel;
+
+        }
+
+        private void btnSnap_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                if (_frameGrabber == null)
+                {
+                    MessageBox.Show("Please Connect To Camera Before Snap Image");
+                    return;
+                }
+                SnapImage();
+            }
+            catch
+            {
+                MessageBox.Show("Snap Image Fail!!!");
+            }
+        }
+
+        private void FrmVisionSettings_Load(object sender, EventArgs e)
+        {
+            lblPassFailM.Text = string.Empty;
+        }
+
+        private void btnSaveCamera_Click(object sender, EventArgs e)
+        {
+            if (cbInterface.Text.Trim() == "")
+            {
+                MessageBox.Show("Please choose an Interface.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+            if (cbDevice.Text.Trim() == "")
+            {
+                MessageBox.Show("Please choose a Camera.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            _interfaceName = cbInterface.Text;
+            _deviceName = cbDevice.Text;
+
+            DataTable dataTable = Lib.GetTableData($"SELECT * FROM {CTableName.ModelCam} WHERE {CColName.ModelId} = '{CurrentModelId}'");
+            if (dataTable.Rows.Count == 0)
+            {
+                if (Lib.ExecuteQuery(
+                    $"INSERT INTO {CTableName.ModelCam} VALUES ('{Guid.NewGuid()}', '{CurrentModelId}', '{_interfaceName}','{_deviceName}','')") == 1)
+                    MessageBox.Show(" Save Successful!!!");
+                else
+                    MessageBox.Show("Save Camera Setting fail !");
+            }
+            else
+            {
+                Guid camId = Lib.ToGuid(dataTable.Rows[0][CColName.Id]);
+                if (Lib.ExecuteQuery(
+                    $"UPDATE {CTableName.ModelCam} SET {CColName.InterfaceName} = '{_interfaceName}', {CColName.DeviceName} = '{_deviceName}' WHERE {CColName.Id} = '{camId}'") == 1)
+                    MessageBox.Show(" Save Successful!!!");
+                else
+                    MessageBox.Show("Save Camera Setting fail !");
+            }
+        }
+
+        private void FrmVisionSettings_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            if (_isLive)
+                btnLive_Click(null, null);
+            Thread.Sleep(1000);
+            GlobFunc.DisconnectCamera(_frameGrabber);
+
+            //if (GlobVar.TCP.IsConnected)
+            //    GlobVar.TCP.Disconnect();
+            //if (InputTextID.Length != 0)
+            //    HOperatorSet.ClearHandle(InputTextID);
+            DialogResult = DialogResult.OK;
+        }
+        void creatModelRegion(int x, int y, double phi, int length1, int length2)
+        {
+            if (_drawingObjectRegion != null)
+            {
+                _drawingObjectRegion.Dispose();
+                _drawingObjectRegion = null;
+            }
+
+            _drawingObjectRegion = HDrawingObject.CreateDrawingObject(HDrawingObject.HDrawingObjectType.RECTANGLE2, x, y, phi, length1, length2);
+
+            _drawingObjectRegion.SetDrawingObjectParams("color", "red");
+            _drawingObjectRegion.OnDrag(GetPosition);
+            _drawingObjectRegion.OnResize(GetPosition);
+            _Window.AttachDrawingObjectToWindow(_drawingObjectRegion);
+        }
+
+        #region ROI TRAIN MATCHING
+
+        private void ViewRoiTrainM()
+        {
+            if (_drawingObjectRegion != null && _drawingObjectRegion.Handle != IntPtr.Zero)
+            {
+                HWindowsMain.HalconWindow.DetachDrawingObjectFromWindow(_drawingObjectRegion);
+                _drawingObjectRegion = null;
+            }
+
+            if (_matchingTrainRegion == null)
+                return;
+
+            _currentRegionType = CRegionType.MTrain;
+            _drawingObjectRegion = HDrawingObject.CreateDrawingObject(HDrawingObject.HDrawingObjectType.RECTANGLE2,
+                _matchingTrainRegion.Row, _matchingTrainRegion.Col, _matchingTrainRegion.Phi, _matchingTrainRegion.Width, _matchingTrainRegion.Height);
+            _drawingObjectRegion.OnDrag(GetPosition);
+            _drawingObjectRegion.OnResize(GetPosition);
+            _drawingObjectRegion.OnSelect(GetPosition);
+
+            HWindowsMain.HalconWindow.AttachDrawingObjectToWindow(_drawingObjectRegion);
+        }
+        private void ViewRoiFindM()
+        {
+            if (_drawingObjectRegion != null && _drawingObjectRegion.Handle != IntPtr.Zero)
+            {
+                HWindowsMain.HalconWindow.DetachDrawingObjectFromWindow(_drawingObjectRegion);
+                _drawingObjectRegion = null;
+            }
+
+            if (_matchingFindRegion == null)
+                return;
+
+            _currentRegionType = CRegionType.MFind;
+            _drawingObjectRegion = HDrawingObject.CreateDrawingObject(HDrawingObject.HDrawingObjectType.RECTANGLE2,
+                _matchingFindRegion.Row, _matchingFindRegion.Col, _matchingFindRegion.Phi, _matchingFindRegion.Width,
+                _matchingFindRegion.Height);
+            _drawingObjectRegion.OnDrag(GetPosition);
+            _drawingObjectRegion.OnResize(GetPosition);
+            _drawingObjectRegion.OnSelect(GetPosition);
+
+            HWindowsMain.HalconWindow.AttachDrawingObjectToWindow(_drawingObjectRegion);
+        }
+        private void btnViewRoiTrainM_Click(object sender, EventArgs e)
+        {
+            ViewRoiTrainM();
+        }
+        private void btnAddRoiTrainM_Click(object sender, EventArgs e)
+        {
+            if (_drawingObjectRegion != null && _drawingObjectRegion.Handle != IntPtr.Zero)
+                HWindowsMain.HalconWindow.DetachDrawingObjectFromWindow(_drawingObjectRegion);
+
+            _matchingTrainRegion = new Region
+            {
+                Row = 0,
+                Col = 0,
+                Width = 100,
+                Height = 100,
+                Phi = 0
+            };
+            EnableDisableControls_MatchingTrain();
+            ViewRoiTrainM();
+            ViewRoiInfo();
+        }
+        private void btnDeleteRoiTrainM_Click(object sender, EventArgs e)
+        {
+            if (_drawingObjectRegion?.Handle != IntPtr.Zero)
+                HWindowsMain.HalconWindow.DetachDrawingObjectFromWindow(_drawingObjectRegion);
+
+            _matchingTrainRegion = null;
+            EnableDisableControls_MatchingTrain();
+            ViewRoiInfo();
+        }
+        #endregion
+
+        private void btnViewRoiFindM_Click(object sender, EventArgs e)
+        {
+            ViewRoiFindM();
+        }
+
+        private void btnAddRoiFindM_Click(object sender, EventArgs e)
+        {
+            if (_drawingObjectRegion != null && _drawingObjectRegion.Handle != IntPtr.Zero)
+                HWindowsMain.HalconWindow.DetachDrawingObjectFromWindow(_drawingObjectRegion);
+
+            _matchingFindRegion = new Region
+            {
+                Row = 0,
+                Col = 0,
+                Width = 100,
+                Height = 100,
+                Phi = 0
+            };
+            EnableDisableControls_MatchingFind();
+            ViewRoiFindM();
+            ViewRoiInfo();
+        }
+
+        private void btnDeleteRoiFindM_Click(object sender, EventArgs e)
+        {
+            if (_drawingObjectRegion?.Handle != IntPtr.Zero)
+                HWindowsMain.HalconWindow.DetachDrawingObjectFromWindow(_drawingObjectRegion);
+
+            _matchingFindRegion = null;
+            EnableDisableControls_MatchingFind();
+            ViewRoiInfo();
+        }
+
+        private void txtMTrainRoiR_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (GlobFunc.GetValueFromTextEdit(txtMTrainRoiR, out double value, true))
+            {
+                _matchingTrainRegion.Row = value;
+                ViewRoiTrainM();
+            }
+            else
+                ViewRoiInfo_MTrain();
+        }
+        private void txtMTrainRoiC_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (GlobFunc.GetValueFromTextEdit(txtMTrainRoiC, out double value, true))
+            {
+                _matchingTrainRegion.Col = value;
+                ViewRoiTrainM();
+            }
+            else
+                ViewRoiInfo_MTrain();
+        }
+        private void txtMTrainRoiW_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (GlobFunc.GetValueFromTextEdit(txtMTrainRoiW, out double value))
+            {
+                _matchingTrainRegion.Width = value;
+                ViewRoiTrainM();
+            }
+            else
+                ViewRoiInfo_MTrain();
+        }
+        private void txtMTrainRoiH_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (GlobFunc.GetValueFromTextEdit(txtMTrainRoiH, out double value))
+            {
+                _matchingTrainRegion.Height = value;
+                ViewRoiTrainM();
+            }
+            else
+                ViewRoiInfo_MTrain();
+        }
+
+        private void txtMTrainRoiPhi_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (GlobFunc.GetValueFromTextEdit(txtMTrainRoiH, out double value, true))
+            {
+                _matchingTrainRegion.Phi = value;
+                ViewRoiTrainM();
+            }
+            else
+                ViewRoiInfo_MTrain();
+        }
+
+        private void txtMFindRoiR_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (GlobFunc.GetValueFromTextEdit(txtMFindRoiR, out double value, true))
+            {
+                _matchingFindRegion.Row = value;
+                ViewRoiFindM();
+            }
+            else
+                ViewRoiInfo_MFind();
+        }
+
+        private void txtMFindRoiC_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (GlobFunc.GetValueFromTextEdit(txtMFindRoiC, out double value, true))
+            {
+                _matchingFindRegion.Col = value;
+                ViewRoiFindM();
+            }
+            else
+                ViewRoiInfo_MFind();
+        }
+
+        private void txtMFindRoiW_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (GlobFunc.GetValueFromTextEdit(txtMFindRoiW, out double value))
+            {
+                _matchingFindRegion.Width = value;
+                ViewRoiFindM();
+            }
+            else
+                ViewRoiInfo_MFind();
+        }
+
+        private void txtMFindRoiH_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (GlobFunc.GetValueFromTextEdit(txtMFindRoiH, out double value))
+            {
+                _matchingFindRegion.Height = value;
+                ViewRoiFindM();
+            }
+            else
+                ViewRoiInfo_MFind();
+        }
+
+        private void txtMFindRoiPhi_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (GlobFunc.GetValueFromTextEdit(txtMFindRoiH, out double value, true))
+            {
+                _matchingFindRegion.Phi = value;
+                ViewRoiFindM();
+            }
+            else
+                ViewRoiInfo_MFind();
+        }
+
+        private void txtMatchingMinScore_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (GlobFunc.GetValueFromTextEdit(txtMatchingMinScore, out double value, true))
+                _matchingMinScore = value;
+            else
+                ViewMatchingOptions();
+        }
+
+        private void txtMatchingNumMatches_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (GlobFunc.GetValueFromTextEdit(txtMatchingNumMatches, out int value, true))
+                _matchingNumMatches = value;
+            else
+                ViewMatchingOptions();
+        }
+
+        private void btnTrainM_Click(object sender, EventArgs e)
+        {
+            TrainMatchingModel();
+        }
+
+        private void btnFindM_Click(object sender, EventArgs e)
+        {
+            RunMatchingModel(false);
+        }
+
+        private void btnSnapFindM_Click(object sender, EventArgs e)
+        {
+            RunMatchingModel();
+        }
+
+        private void btnSaveMatchingSettings_Click(object sender, EventArgs e)
+        {
+            SaveMatchingData();
+        }
+
+        private void btnViewImageMasterM_Click(object sender, EventArgs e)
+        {
+            if (_matchingImageMaster != null && _matchingImageMaster.Key != IntPtr.Zero)
+            {
+                Lib.SmartSetPart(_matchingImageMaster, HWindowsMain);
+                HWindowsMain.HalconWindow.DispObj(_matchingImageMaster);
+                _hImage = new HImage(_matchingImageMaster);
+            }
+        }
+
+        private void btnSaveTrigger_Click(object sender, EventArgs e)
+        {
+            if (txtIpCom.Text.Trim() == "")
+            {
+                MessageBox.Show("Ip Address (Or Com) can't empty.", "Warning", MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+                return;
+            }
+            if (txtPortBaudrate.Text.Trim() == "")
+            {
+                MessageBox.Show("Port Number (Or Baudrate) can't empty.", "Warning", MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+                return;
+            }
+            if (!int.TryParse(txtPortBaudrate.Text.Trim(), out int portNumber))
+            {
+                MessageBox.Show("Port Number (Or Baudrate) must be a number.", "Warning", MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+                return;
+            }
+            if (txtTriggerValue.Text.Trim() == "")
+            {
+                MessageBox.Show("Trigger Value can't empty.", "Warning", MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+                return;
+            }
+            SaveTriggerInfo();
+        }
+
+
+       
+    }
+
+    public class Device
+    {
+        public string InterfaceName { get; set; }
+        public string DeviceName { get; set; }
+    }
+    public class Region
+    {
+        public double Row { get; set; }
+        public double Col { get; set; }
+        public double Width { get; set; }
+        public double Height { get; set; }
+        public double Phi { get; set; }
+    }
+}

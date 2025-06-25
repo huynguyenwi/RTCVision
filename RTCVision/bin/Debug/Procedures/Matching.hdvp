@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hdevelop file_version="1.2" halcon_version="20.11.1.0">
+<procedure name="Matching">
+<interface>
+<io>
+<par name="Image" base_type="iconic" dimension="0"/>
+<par name="In_Roi" base_type="iconic" dimension="0"/>
+</io>
+<oo>
+<par name="Out_ContoursTrain" base_type="iconic" dimension="0"/>
+<par name="Out_ContoursFind" base_type="iconic" dimension="0"/>
+</oo>
+<ic>
+<par name="Select_Mode" base_type="ctrl" dimension="0"/>
+<par name="In_ModelID" base_type="ctrl" dimension="0"/>
+<par name="In_MinScore" base_type="ctrl" dimension="0"/>
+<par name="In_NumMatches" base_type="ctrl" dimension="0"/>
+<par name="In_Origin" base_type="ctrl" dimension="0"/>
+</ic>
+<oc>
+<par name="Out_Origin" base_type="ctrl" dimension="0"/>
+<par name="Out_ModelID" base_type="ctrl" dimension="0"/>
+<par name="Out_Row" base_type="ctrl" dimension="0"/>
+<par name="Out_Column" base_type="ctrl" dimension="0"/>
+<par name="Out_Angle" base_type="ctrl" dimension="0"/>
+<par name="Out_Score" base_type="ctrl" dimension="0"/>
+<par name="Exception" base_type="ctrl" dimension="0"/>
+<par name="Pass" base_type="ctrl" dimension="0"/>
+<par name="Out_ActualNumberMatches" base_type="ctrl" dimension="0"/>
+</oc>
+</interface>
+<body>
+<l>try</l>
+<l>    Exception := ''</l>
+<l>    Out_ActualNumberMatches:=0</l>
+<l>    Out_DecodedData:= ''</l>
+<l>    Out_Origin:= []</l>
+<l>    Pass := false</l>
+<l>    count_obj (In_Roi, Number)</l>
+<l>    if (Number &gt; 0)</l>
+<l>        reduce_domain (Image, In_Roi, ImageReduced)</l>
+<l>    else</l>
+<l>        ImageReduced := Image</l>
+<l>    endif</l>
+<l>    if (Select_Mode = 'Train')</l>
+<l>        create_shape_model (ImageReduced, 'auto', rad(-360),rad(360), 'auto', 'auto', 'use_polarity', 'auto', 'auto', Out_ModelID)</l>
+<l>        find_shape_model (Image, Out_ModelID, rad(-360),rad(360), 0.5, 1, 0.5, 'least_squares', 0, 0.9, Row, Column, Angle, Score)</l>
+<l>        Out_Origin := [Row, Column,0]</l>
+<l>        get_shape_model_contours (ModelContours, Out_ModelID, 1)</l>
+<l>        vector_angle_to_rigid (0, 0, 0, Row, Column,0, HomMat2D)</l>
+<l>        affine_trans_contour_xld (ModelContours, Out_ContoursTrain, HomMat2D)</l>
+<l>        Pass := true</l>
+<l>    else</l>
+<l>        find_shape_model (ImageReduced, In_ModelID, rad(-360),rad(360), In_MinScore, In_NumMatches, 0.5, 'least_squares', 0, 0.9, Out_Row, Out_Column, Out_Angle, Out_Score)</l>
+<l>        get_shape_model_contours (ModelContours, In_ModelID, 1)        </l>
+<l>        if (|Out_Score| &gt;0)</l>
+<l>            vector_angle_to_rigid (0, 0, 0, Out_Row, Out_Column, Out_Angle, HomMat2D1)</l>
+<l>            affine_trans_contour_xld (ModelContours, Out_ContoursFind, HomMat2D1)</l>
+<l>            Out_ActualNumberMatches := |Out_Score|</l>
+<l>            Pass := true</l>
+<l>        else</l>
+<l>            Pass := false</l>
+<l>        endif</l>
+<c>        </c>
+<l>        if(In_NumMatches&gt;=0 )</l>
+<l>            if(In_NumMatches = Out_ActualNumberMatches)</l>
+<l>                Pass := true</l>
+<l>            else</l>
+<l>                Pass := false</l>
+<l>            endif</l>
+<l>        endif</l>
+<l>    endif</l>
+<l>catch (Exception)</l>
+<l>endtry</l>
+<l>return ()</l>
+</body>
+<docu id="Matching">
+<parameters>
+<parameter id="Exception"/>
+<parameter id="Image"/>
+<parameter id="In_MinScore"/>
+<parameter id="In_ModelID"/>
+<parameter id="In_NumMatches"/>
+<parameter id="In_Origin"/>
+<parameter id="In_Roi"/>
+<parameter id="Out_ActualNumberMatches"/>
+<parameter id="Out_Angle"/>
+<parameter id="Out_Column"/>
+<parameter id="Out_ContoursFind"/>
+<parameter id="Out_ContoursTrain"/>
+<parameter id="Out_ModelID"/>
+<parameter id="Out_Origin"/>
+<parameter id="Out_Row"/>
+<parameter id="Out_Score"/>
+<parameter id="Pass"/>
+<parameter id="Select_Mode"/>
+</parameters>
+</docu>
+</procedure>
+</hdevelop>
