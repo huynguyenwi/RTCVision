@@ -52,3 +52,7 @@ C:\Users\Razer\source\repos\RTCVision\RTCVision\bin\Debug\EntityFramework.SqlSer
 C:\Users\Razer\source\repos\RTCVision\RTCVision\bin\Debug\System.Data.SQLite.xml
 C:\Users\Razer\source\repos\RTCVision\RTCVision\obj\Debug\RTCVision.exe.config
 C:\Users\Razer\source\repos\RTCVision\RTCVision\obj\Debug\RTCVision.FrmVisionSettings.resources
+C:\Users\Razer\source\repos\RTCVIsion\RTCVision\bin\Debug\MVSDK_Net.dll
+C:\Users\Razer\source\repos\RTCVIsion\RTCVision\bin\Debug\RTCConst.dll
+C:\Users\Razer\source\repos\RTCVIsion\RTCVision\bin\Debug\RTCDahuaSdk.dll
+C:\Users\Razer\source\repos\RTCVIsion\RTCVision\obj\Debug\RTCVision.csproj.SuggestedBindingRedirects.cache

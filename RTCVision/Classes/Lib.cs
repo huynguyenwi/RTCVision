@@ -1571,8 +1571,8 @@ namespace RTCVision
             try
             {
                 GlobVar.MyEngine = new HDevEngine();
-                //GlobVar.MyEngine.SetProcedurePath(Application.StartupPath + "/Procedures");
-                GlobVar.MyEngine.SetProcedurePath(@"C:\Users\Razer\source\repos\RTCVision\RTCVision\Procedures");
+                GlobVar.MyEngine.SetProcedurePath(Application.StartupPath + "/Procedures");
+                //GlobVar.MyEngine.SetProcedurePath(@"C:\Users\Razer\source\repos\RTCVision\RTCVision\Procedures");
                 GlobVar.MyEngine.SetEngineAttribute("debug_password", "1");
                 GlobVar.MyEngine.SetEngineAttribute("debug_port", new HTuple(50));
                 GlobVar.MyEngine.SetEngineAttribute("debug_wait_for_connection", "true");

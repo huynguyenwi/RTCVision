@@ -1,5 +1,6 @@
 ﻿using DevExpress.XtraEditors;
 using HalconDotNet;
+using RTCDahuaSdk;
 using RTCVision.Consts;
 using System;
 using System.Collections.Generic;
@@ -69,7 +70,9 @@ namespace RTCVision
         private HObject _matchingOut_ContoursFind = new HObject();
 
         private string _ipAddress = "127.0.0.1";
-        private int _portNumber = 4000;
+        private int _portNumber = 4000; 
+        private string _comPort = "COM2";
+        private int _baudRate = 9600;
         private string _triggerValue = "C";
 
 
@@ -79,24 +82,34 @@ namespace RTCVision
         int _olsPosition = 0;
         bool _isNew = false;
 
+        private MyDahuaCamera _dahuaCamera = new MyDahuaCamera();
+
+
         #region FUNCTIONS
 
         private void SaveTriggerInfo()
         {
             // Lưu trữ thông số matching
+            /*            Lib.ExecuteQuery(
+                            $"DELETE FROM {CTableName.TriggerSettings} WHERE {CColName.ModelId} = '{CurrentModelId}'");
+                        Lib.ExecuteQuery($"INSERT INTO {CTableName.TriggerSettings} VALUES('{CurrentModelId}','{_ipAddress}',{_portNumber},'{_triggerValue}')");*/
+
+            _comPort = txtIpCom.Text; 
+            _baudRate = Lib.ToInt(txtPortBaudrate.Text);
+
             Lib.ExecuteQuery(
                 $"DELETE FROM {CTableName.TriggerSettings} WHERE {CColName.ModelId} = '{CurrentModelId}'");
-            Lib.ExecuteQuery($"INSERT INTO {CTableName.TriggerSettings} VALUES('{CurrentModelId}','{_ipAddress}',{_portNumber},'{_triggerValue}')");
+            Lib.ExecuteQuery($"INSERT INTO {CTableName.TriggerSettings} VALUES('{CurrentModelId}','{_comPort}',{_baudRate},'{_triggerValue}')");
         }
         private void LoadTriggerInfo()
         {
-            _ipAddress = Lib.ExecuteScalar($"SELECT {CColName.IpAddress} FROM {CTableName.TriggerSettings} WHERE {CColName.ModelId}='{CurrentModelId}'").ToString();
-            _portNumber = Lib.ToInt(Lib.ExecuteScalar(
+            _comPort = Lib.ExecuteScalar($"SELECT {CColName.IpAddress} FROM {CTableName.TriggerSettings} WHERE {CColName.ModelId}='{CurrentModelId}'").ToString();
+            _baudRate = Lib.ToInt(Lib.ExecuteScalar(
                 $"SELECT {CColName.PortNumber} FROM {CTableName.TriggerSettings} WHERE {CColName.ModelId}='{CurrentModelId}'"));
             _triggerValue = Lib.ExecuteScalar($"SELECT {CColName.TriggerValue} FROM {CTableName.TriggerSettings} WHERE {CColName.ModelId}='{CurrentModelId}'").ToString();
 
-            txtIpCom.Text = _ipAddress;
-            txtPortBaudrate.Text = _portNumber.ToString();
+            txtIpCom.Text = _comPort;
+            txtPortBaudrate.Text = _baudRate.ToString();
             txtTriggerValue.Text = _triggerValue;
         }
 

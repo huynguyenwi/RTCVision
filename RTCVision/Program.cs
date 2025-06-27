@@ -1,6 +1,9 @@
-﻿using System;
+﻿using RTCVision.Classes;
+using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -14,8 +17,20 @@ namespace RTCVision
         [STAThread]
         static void Main()
         {
-            Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
+            Lib.SetupEnvironment();
+            //Application.EnableVisualStyles();
+            //Application.SetCompatibleTextRenderingDefault(false);
+            GlobVar.Settings = new ProgramSetting();
+            GlobVar.Settings.ReadSettings();
+
+
+            CultureInfo customCulture =
+                (CultureInfo)Thread.CurrentThread.CurrentCulture.Clone();
+            customCulture.NumberFormat.NumberDecimalSeparator = ".";
+            customCulture.NumberFormat.NumberGroupSeparator = ",";
+
+            Thread.CurrentThread.CurrentCulture = customCulture;
+
             Application.Run(new FrmMain());
         }
     }

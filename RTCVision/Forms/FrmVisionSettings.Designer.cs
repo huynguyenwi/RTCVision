@@ -44,8 +44,6 @@
             this.labelControl6 = new DevExpress.XtraEditors.LabelControl();
             this.labelControl5 = new DevExpress.XtraEditors.LabelControl();
             this.labelControl4 = new DevExpress.XtraEditors.LabelControl();
-            this.labelControl3 = new DevExpress.XtraEditors.LabelControl();
-            this.cbTypeTrigger = new DevExpress.XtraEditors.ComboBoxEdit();
             this.btnSaveCamera = new DevExpress.XtraEditors.SimpleButton();
             this.btnConnectCamera = new DevExpress.XtraEditors.SimpleButton();
             this.btnDetect = new DevExpress.XtraEditors.SimpleButton();
@@ -122,7 +120,6 @@
             ((System.ComponentModel.ISupportInitialize)(this.txtPortBaudrate.Properties)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.txtTriggerValue.Properties)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.txtIpCom.Properties)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.cbTypeTrigger.Properties)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.cbDevice.Properties)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.cbInterface.Properties)).BeginInit();
             this.xtraTabPage2.SuspendLayout();
@@ -272,11 +269,9 @@
             this.groupControl1.Controls.Add(this.labelControl6);
             this.groupControl1.Controls.Add(this.labelControl5);
             this.groupControl1.Controls.Add(this.labelControl4);
-            this.groupControl1.Controls.Add(this.labelControl3);
-            this.groupControl1.Controls.Add(this.cbTypeTrigger);
             this.groupControl1.Location = new System.Drawing.Point(7, 182);
             this.groupControl1.Name = "groupControl1";
-            this.groupControl1.Size = new System.Drawing.Size(499, 306);
+            this.groupControl1.Size = new System.Drawing.Size(499, 250);
             this.groupControl1.TabIndex = 15;
             // 
             // labelControl23
@@ -293,7 +288,7 @@
             // 
             // txtPortBaudrate
             // 
-            this.txtPortBaudrate.Location = new System.Drawing.Point(157, 177);
+            this.txtPortBaudrate.Location = new System.Drawing.Point(157, 120);
             this.txtPortBaudrate.Name = "txtPortBaudrate";
             this.txtPortBaudrate.Properties.Appearance.Font = new System.Drawing.Font("Tahoma", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.txtPortBaudrate.Properties.Appearance.ForeColor = System.Drawing.Color.Black;
@@ -304,7 +299,7 @@
             // 
             // txtTriggerValue
             // 
-            this.txtTriggerValue.Location = new System.Drawing.Point(136, 237);
+            this.txtTriggerValue.Location = new System.Drawing.Point(136, 180);
             this.txtTriggerValue.Name = "txtTriggerValue";
             this.txtTriggerValue.Properties.Appearance.Font = new System.Drawing.Font("Tahoma", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.txtTriggerValue.Properties.Appearance.ForeColor = System.Drawing.Color.Black;
@@ -315,7 +310,7 @@
             // 
             // txtIpCom
             // 
-            this.txtIpCom.Location = new System.Drawing.Point(106, 118);
+            this.txtIpCom.Location = new System.Drawing.Point(106, 61);
             this.txtIpCom.Name = "txtIpCom";
             this.txtIpCom.Properties.Appearance.Font = new System.Drawing.Font("Tahoma", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.txtIpCom.Properties.Appearance.ForeColor = System.Drawing.Color.Black;
@@ -330,7 +325,7 @@
             this.btnSaveTrigger.Appearance.ForeColor = System.Drawing.Color.Black;
             this.btnSaveTrigger.Appearance.Options.UseFont = true;
             this.btnSaveTrigger.Appearance.Options.UseForeColor = true;
-            this.btnSaveTrigger.Location = new System.Drawing.Point(346, 229);
+            this.btnSaveTrigger.Location = new System.Drawing.Point(346, 172);
             this.btnSaveTrigger.Name = "btnSaveTrigger";
             this.btnSaveTrigger.Size = new System.Drawing.Size(133, 42);
             this.btnSaveTrigger.TabIndex = 5;
@@ -343,7 +338,7 @@
             this.labelControl6.Appearance.ForeColor = System.Drawing.Color.Black;
             this.labelControl6.Appearance.Options.UseFont = true;
             this.labelControl6.Appearance.Options.UseForeColor = true;
-            this.labelControl6.Location = new System.Drawing.Point(17, 240);
+            this.labelControl6.Location = new System.Drawing.Point(17, 183);
             this.labelControl6.Name = "labelControl6";
             this.labelControl6.Size = new System.Drawing.Size(99, 21);
             this.labelControl6.TabIndex = 4;
@@ -355,7 +350,7 @@
             this.labelControl5.Appearance.ForeColor = System.Drawing.Color.Black;
             this.labelControl5.Appearance.Options.UseFont = true;
             this.labelControl5.Appearance.Options.UseForeColor = true;
-            this.labelControl5.Location = new System.Drawing.Point(13, 180);
+            this.labelControl5.Location = new System.Drawing.Point(13, 123);
             this.labelControl5.Name = "labelControl5";
             this.labelControl5.Size = new System.Drawing.Size(118, 21);
             this.labelControl5.TabIndex = 3;
@@ -367,38 +362,11 @@
             this.labelControl4.Appearance.ForeColor = System.Drawing.Color.Black;
             this.labelControl4.Appearance.Options.UseFont = true;
             this.labelControl4.Appearance.Options.UseForeColor = true;
-            this.labelControl4.Location = new System.Drawing.Point(13, 121);
+            this.labelControl4.Location = new System.Drawing.Point(13, 64);
             this.labelControl4.Name = "labelControl4";
             this.labelControl4.Size = new System.Drawing.Size(69, 21);
             this.labelControl4.TabIndex = 2;
             this.labelControl4.Text = "Ip && Com";
-            // 
-            // labelControl3
-            // 
-            this.labelControl3.Appearance.Font = new System.Drawing.Font("Tahoma", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.labelControl3.Appearance.ForeColor = System.Drawing.Color.Black;
-            this.labelControl3.Appearance.Options.UseFont = true;
-            this.labelControl3.Appearance.Options.UseForeColor = true;
-            this.labelControl3.Location = new System.Drawing.Point(13, 65);
-            this.labelControl3.Name = "labelControl3";
-            this.labelControl3.Size = new System.Drawing.Size(36, 21);
-            this.labelControl3.TabIndex = 1;
-            this.labelControl3.Text = "Type";
-            // 
-            // cbTypeTrigger
-            // 
-            this.cbTypeTrigger.Location = new System.Drawing.Point(70, 62);
-            this.cbTypeTrigger.Name = "cbTypeTrigger";
-            this.cbTypeTrigger.Properties.Appearance.Font = new System.Drawing.Font("Tahoma", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.cbTypeTrigger.Properties.Appearance.ForeColor = System.Drawing.Color.Black;
-            this.cbTypeTrigger.Properties.Appearance.Options.UseFont = true;
-            this.cbTypeTrigger.Properties.Appearance.Options.UseForeColor = true;
-            this.cbTypeTrigger.Properties.AppearanceDropDown.Font = new System.Drawing.Font("Tahoma", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.cbTypeTrigger.Properties.AppearanceDropDown.Options.UseFont = true;
-            this.cbTypeTrigger.Properties.Buttons.AddRange(new DevExpress.XtraEditors.Controls.EditorButton[] {
-            new DevExpress.XtraEditors.Controls.EditorButton(DevExpress.XtraEditors.Controls.ButtonPredefines.Combo)});
-            this.cbTypeTrigger.Size = new System.Drawing.Size(407, 28);
-            this.cbTypeTrigger.TabIndex = 0;
             // 
             // btnSaveCamera
             // 
@@ -1173,7 +1141,6 @@
             ((System.ComponentModel.ISupportInitialize)(this.txtPortBaudrate.Properties)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.txtTriggerValue.Properties)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.txtIpCom.Properties)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.cbTypeTrigger.Properties)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.cbDevice.Properties)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.cbInterface.Properties)).EndInit();
             this.xtraTabPage2.ResumeLayout(false);
@@ -1228,8 +1195,6 @@
         private DevExpress.XtraEditors.LabelControl labelControl6;
         private DevExpress.XtraEditors.LabelControl labelControl5;
         private DevExpress.XtraEditors.LabelControl labelControl4;
-        private DevExpress.XtraEditors.LabelControl labelControl3;
-        private DevExpress.XtraEditors.ComboBoxEdit cbTypeTrigger;
         private DevExpress.XtraEditors.SimpleButton btnSaveCamera;
         private DevExpress.XtraEditors.SimpleButton btnConnectCamera;
         private DevExpress.XtraEditors.SimpleButton btnDetect;

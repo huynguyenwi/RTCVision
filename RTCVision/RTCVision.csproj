@@ -9,12 +9,13 @@
     <OutputType>WinExe</OutputType>
     <RootNamespace>RTCVision</RootNamespace>
     <AssemblyName>RTCVision</AssemblyName>
-    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Deterministic>true</Deterministic>
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>x64</PlatformTarget>
@@ -63,6 +64,18 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>bin\Debug\hdevenginedotnet.dll</HintPath>
     </Reference>
+    <Reference Include="MVSDK_Net, Version=1.3.0.9252, Culture=neutral, processorArchitecture=AMD64">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\ConnectCam_DaHua_IRAYPLE\ConnectCam_DaHua_IRAYPLE\bin\Debug\MVSDK_Net.dll</HintPath>
+    </Reference>
+    <Reference Include="RTCConst, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\ConnectCam_DaHua_IRAYPLE\ConnectCam_DaHua_IRAYPLE\bin\Debug\RTCConst.dll</HintPath>
+    </Reference>
+    <Reference Include="RTCDahuaSdk, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\ConnectCam_DaHua_IRAYPLE\ConnectCam_DaHua_IRAYPLE\bin\Debug\RTCDahuaSdk.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Core" />
@@ -87,9 +100,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Classes\Consts.cs" />
+    <Compile Include="Classes\cSLMPClient.cs" />
     <Compile Include="Classes\GlobFunc.cs" />
     <Compile Include="Classes\GlobVar.cs" />
     <Compile Include="Classes\Lib.cs" />
+    <Compile Include="Classes\MyDahuaCamera.cs" />
     <Compile Include="Classes\ProgramSetting.cs" />
     <Compile Include="Forms\FrmMain.cs">
       <SubType>Form</SubType>
@@ -107,9 +122,11 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="Forms\FrmMain.resx">
       <DependentUpon>FrmMain.cs</DependentUpon>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\FrmVisionSettings.resx">
       <DependentUpon>FrmVisionSettings.cs</DependentUpon>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\licenses.licx" />
     <EmbeddedResource Include="Properties\Resources.resx">
@@ -120,6 +137,7 @@
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
     </Compile>
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
