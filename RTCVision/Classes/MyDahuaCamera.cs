@@ -587,7 +587,7 @@ namespace RTCDahuaSdk
                 }
             }
         }
-        private Bitmap GetLatestBitmap()
+        public Bitmap GetLatestBitmap()
         {
             try
             {
@@ -743,7 +743,7 @@ namespace RTCDahuaSdk
         /// </summary>
         /// <param name="bitmap">Ảnh định dạng Bitmap</param>
         /// <returns>Ảnh định dạng HImage</returns>
-        private HImage Bitmap2HImage(System.Drawing.Bitmap bitmap)
+        public HImage Bitmap2HImage(System.Drawing.Bitmap bitmap)
         {
             if (bitmap == null)
                 return new HImage();

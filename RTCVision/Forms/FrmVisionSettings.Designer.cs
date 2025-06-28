@@ -35,6 +35,7 @@
             this.xtraTabControl1 = new DevExpress.XtraTab.XtraTabControl();
             this.xtraTabPage1 = new DevExpress.XtraTab.XtraTabPage();
             this.panelControl4 = new DevExpress.XtraEditors.PanelControl();
+            this.btnLiveDahua = new DevExpress.XtraEditors.SimpleButton();
             this.groupControl1 = new DevExpress.XtraEditors.GroupControl();
             this.labelControl23 = new DevExpress.XtraEditors.LabelControl();
             this.txtPortBaudrate = new DevExpress.XtraEditors.TextEdit();
@@ -45,10 +46,15 @@
             this.labelControl5 = new DevExpress.XtraEditors.LabelControl();
             this.labelControl4 = new DevExpress.XtraEditors.LabelControl();
             this.btnSaveCamera = new DevExpress.XtraEditors.SimpleButton();
+            this.btnSnapDahua = new DevExpress.XtraEditors.SimpleButton();
+            this.btnConnectDahua = new DevExpress.XtraEditors.SimpleButton();
             this.btnConnectCamera = new DevExpress.XtraEditors.SimpleButton();
+            this.btnDetectDahua = new DevExpress.XtraEditors.SimpleButton();
             this.btnDetect = new DevExpress.XtraEditors.SimpleButton();
+            this.cbDeviceDahua = new DevExpress.XtraEditors.ComboBoxEdit();
             this.cbDevice = new DevExpress.XtraEditors.ComboBoxEdit();
             this.cbInterface = new DevExpress.XtraEditors.ComboBoxEdit();
+            this.labelControl3 = new DevExpress.XtraEditors.LabelControl();
             this.labelControl2 = new DevExpress.XtraEditors.LabelControl();
             this.labelControl1 = new DevExpress.XtraEditors.LabelControl();
             this.xtraTabPage2 = new DevExpress.XtraTab.XtraTabPage();
@@ -120,6 +126,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.txtPortBaudrate.Properties)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.txtTriggerValue.Properties)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.txtIpCom.Properties)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.cbDeviceDahua.Properties)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.cbDevice.Properties)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.cbInterface.Properties)).BeginInit();
             this.xtraTabPage2.SuspendLayout();
@@ -240,12 +247,18 @@
             this.panelControl4.Appearance.BackColor = System.Drawing.SystemColors.ActiveCaption;
             this.panelControl4.Appearance.Options.UseBackColor = true;
             this.panelControl4.BorderStyle = DevExpress.XtraEditors.Controls.BorderStyles.NoBorder;
+            this.panelControl4.Controls.Add(this.btnLiveDahua);
             this.panelControl4.Controls.Add(this.groupControl1);
             this.panelControl4.Controls.Add(this.btnSaveCamera);
+            this.panelControl4.Controls.Add(this.btnSnapDahua);
+            this.panelControl4.Controls.Add(this.btnConnectDahua);
             this.panelControl4.Controls.Add(this.btnConnectCamera);
+            this.panelControl4.Controls.Add(this.btnDetectDahua);
             this.panelControl4.Controls.Add(this.btnDetect);
+            this.panelControl4.Controls.Add(this.cbDeviceDahua);
             this.panelControl4.Controls.Add(this.cbDevice);
             this.panelControl4.Controls.Add(this.cbInterface);
+            this.panelControl4.Controls.Add(this.labelControl3);
             this.panelControl4.Controls.Add(this.labelControl2);
             this.panelControl4.Controls.Add(this.labelControl1);
             this.panelControl4.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -253,6 +266,19 @@
             this.panelControl4.Name = "panelControl4";
             this.panelControl4.Size = new System.Drawing.Size(513, 694);
             this.panelControl4.TabIndex = 1;
+            // 
+            // btnLiveDahua
+            // 
+            this.btnLiveDahua.Appearance.Font = new System.Drawing.Font("Tahoma", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnLiveDahua.Appearance.ForeColor = System.Drawing.Color.Black;
+            this.btnLiveDahua.Appearance.Options.UseFont = true;
+            this.btnLiveDahua.Appearance.Options.UseForeColor = true;
+            this.btnLiveDahua.ImageOptions.SvgImage = ((DevExpress.Utils.Svg.SvgImage)(resources.GetObject("btnLiveDahua.ImageOptions.SvgImage")));
+            this.btnLiveDahua.Location = new System.Drawing.Point(415, 548);
+            this.btnLiveDahua.Name = "btnLiveDahua";
+            this.btnLiveDahua.Size = new System.Drawing.Size(45, 38);
+            this.btnLiveDahua.TabIndex = 3;
+            this.btnLiveDahua.Click += new System.EventHandler(this.btnLiveDahua_Click);
             // 
             // groupControl1
             // 
@@ -381,6 +407,32 @@
             this.btnSaveCamera.Text = "Save";
             this.btnSaveCamera.Click += new System.EventHandler(this.btnSaveCamera_Click);
             // 
+            // btnSnapDahua
+            // 
+            this.btnSnapDahua.Appearance.Font = new System.Drawing.Font("Tahoma", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnSnapDahua.Appearance.ForeColor = System.Drawing.Color.Black;
+            this.btnSnapDahua.Appearance.Options.UseFont = true;
+            this.btnSnapDahua.Appearance.Options.UseForeColor = true;
+            this.btnSnapDahua.ImageOptions.SvgImage = ((DevExpress.Utils.Svg.SvgImage)(resources.GetObject("btnSnapDahua.ImageOptions.SvgImage")));
+            this.btnSnapDahua.Location = new System.Drawing.Point(342, 548);
+            this.btnSnapDahua.Name = "btnSnapDahua";
+            this.btnSnapDahua.Size = new System.Drawing.Size(47, 38);
+            this.btnSnapDahua.TabIndex = 2;
+            this.btnSnapDahua.Click += new System.EventHandler(this.btnSnapDahua_Click);
+            // 
+            // btnConnectDahua
+            // 
+            this.btnConnectDahua.Appearance.Font = new System.Drawing.Font("Tahoma", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnConnectDahua.Appearance.ForeColor = System.Drawing.Color.Black;
+            this.btnConnectDahua.Appearance.Options.UseFont = true;
+            this.btnConnectDahua.Appearance.Options.UseForeColor = true;
+            this.btnConnectDahua.Location = new System.Drawing.Point(196, 542);
+            this.btnConnectDahua.Name = "btnConnectDahua";
+            this.btnConnectDahua.Size = new System.Drawing.Size(127, 46);
+            this.btnConnectDahua.TabIndex = 13;
+            this.btnConnectDahua.Text = "Connect Dahua";
+            this.btnConnectDahua.Click += new System.EventHandler(this.btnConnectDahua_Click);
+            // 
             // btnConnectCamera
             // 
             this.btnConnectCamera.Appearance.Font = new System.Drawing.Font("Tahoma", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
@@ -394,6 +446,19 @@
             this.btnConnectCamera.Text = "Connect";
             this.btnConnectCamera.Click += new System.EventHandler(this.btnConnectCamera_Click);
             // 
+            // btnDetectDahua
+            // 
+            this.btnDetectDahua.Appearance.Font = new System.Drawing.Font("Tahoma", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnDetectDahua.Appearance.ForeColor = System.Drawing.Color.Black;
+            this.btnDetectDahua.Appearance.Options.UseFont = true;
+            this.btnDetectDahua.Appearance.Options.UseForeColor = true;
+            this.btnDetectDahua.Location = new System.Drawing.Point(24, 544);
+            this.btnDetectDahua.Name = "btnDetectDahua";
+            this.btnDetectDahua.Size = new System.Drawing.Size(151, 42);
+            this.btnDetectDahua.TabIndex = 12;
+            this.btnDetectDahua.Text = "Detect Interfaces";
+            this.btnDetectDahua.Click += new System.EventHandler(this.btnDetectDahua_Click);
+            // 
             // btnDetect
             // 
             this.btnDetect.Appearance.Font = new System.Drawing.Font("Tahoma", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
@@ -406,6 +471,21 @@
             this.btnDetect.TabIndex = 12;
             this.btnDetect.Text = "Detect Interfaces";
             this.btnDetect.Click += new System.EventHandler(this.btnDetect_Click);
+            // 
+            // cbDeviceDahua
+            // 
+            this.cbDeviceDahua.Location = new System.Drawing.Point(103, 481);
+            this.cbDeviceDahua.Name = "cbDeviceDahua";
+            this.cbDeviceDahua.Properties.Appearance.Font = new System.Drawing.Font("Tahoma", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.cbDeviceDahua.Properties.Appearance.ForeColor = System.Drawing.Color.Black;
+            this.cbDeviceDahua.Properties.Appearance.Options.UseFont = true;
+            this.cbDeviceDahua.Properties.Appearance.Options.UseForeColor = true;
+            this.cbDeviceDahua.Properties.AppearanceDropDown.Font = new System.Drawing.Font("Tahoma", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.cbDeviceDahua.Properties.AppearanceDropDown.Options.UseFont = true;
+            this.cbDeviceDahua.Properties.Buttons.AddRange(new DevExpress.XtraEditors.Controls.EditorButton[] {
+            new DevExpress.XtraEditors.Controls.EditorButton(DevExpress.XtraEditors.Controls.ButtonPredefines.Combo)});
+            this.cbDeviceDahua.Size = new System.Drawing.Size(371, 28);
+            this.cbDeviceDahua.TabIndex = 11;
             // 
             // cbDevice
             // 
@@ -437,6 +517,18 @@
             this.cbInterface.Size = new System.Drawing.Size(371, 28);
             this.cbInterface.TabIndex = 10;
             this.cbInterface.SelectedIndexChanged += new System.EventHandler(this.cbInterface_SelectedIndexChanged);
+            // 
+            // labelControl3
+            // 
+            this.labelControl3.Appearance.Font = new System.Drawing.Font("Tahoma", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.labelControl3.Appearance.ForeColor = System.Drawing.Color.Black;
+            this.labelControl3.Appearance.Options.UseFont = true;
+            this.labelControl3.Appearance.Options.UseForeColor = true;
+            this.labelControl3.Location = new System.Drawing.Point(24, 484);
+            this.labelControl3.Name = "labelControl3";
+            this.labelControl3.Size = new System.Drawing.Size(50, 21);
+            this.labelControl3.TabIndex = 9;
+            this.labelControl3.Text = "Device";
             // 
             // labelControl2
             // 
@@ -1141,6 +1233,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.txtPortBaudrate.Properties)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.txtTriggerValue.Properties)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.txtIpCom.Properties)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.cbDeviceDahua.Properties)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.cbDevice.Properties)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.cbInterface.Properties)).EndInit();
             this.xtraTabPage2.ResumeLayout(false);
@@ -1245,5 +1338,11 @@
         private DevExpress.XtraEditors.LabelControl labelControl9;
         private DevExpress.XtraEditors.LabelControl labelControl10;
         private DevExpress.XtraEditors.ComboBoxEdit cbInterface;
+        private DevExpress.XtraEditors.SimpleButton btnConnectDahua;
+        private DevExpress.XtraEditors.SimpleButton btnLiveDahua;
+        private DevExpress.XtraEditors.SimpleButton btnSnapDahua;
+        private DevExpress.XtraEditors.SimpleButton btnDetectDahua;
+        private DevExpress.XtraEditors.ComboBoxEdit cbDeviceDahua;
+        private DevExpress.XtraEditors.LabelControl labelControl3;
     }
 }

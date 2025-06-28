@@ -3,16 +3,20 @@
   "WorkspaceRootPath": "C:\\Users\\Razer\\source\\repos\\RTCVision\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{012834AA-C0CB-49AA-8674-9D9F71A27AF6}|RTCVision\\RTCVision.csproj|C:\\Users\\Razer\\source\\repos\\RTCVision\\rtcvision\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{012834AA-C0CB-49AA-8674-9D9F71A27AF6}|RTCVision\\RTCVision.csproj|solutionrelative:rtcvision\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{012834AA-C0CB-49AA-8674-9D9F71A27AF6}|RTCVision\\RTCVision.csproj|C:\\Users\\Razer\\source\\repos\\RTCVision\\rtcvision\\forms\\frmmain.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{012834AA-C0CB-49AA-8674-9D9F71A27AF6}|RTCVision\\RTCVision.csproj|solutionrelative:rtcvision\\forms\\frmmain.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{012834AA-C0CB-49AA-8674-9D9F71A27AF6}|RTCVision\\RTCVision.csproj|C:\\Users\\Razer\\source\\repos\\RTCVision\\rtcvision\\forms\\frmvisionsettings.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{012834AA-C0CB-49AA-8674-9D9F71A27AF6}|RTCVision\\RTCVision.csproj|solutionrelative:rtcvision\\forms\\frmvisionsettings.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{012834AA-C0CB-49AA-8674-9D9F71A27AF6}|RTCVision\\RTCVision.csproj|C:\\Users\\Razer\\source\\repos\\RTCVision\\rtcvision\\forms\\frmvisionsettings.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
       "RelativeMoniker": "D:0:0:{012834AA-C0CB-49AA-8674-9D9F71A27AF6}|RTCVision\\RTCVision.csproj|solutionrelative:rtcvision\\forms\\frmvisionsettings.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{012834AA-C0CB-49AA-8674-9D9F71A27AF6}|RTCVision\\RTCVision.csproj|C:\\Users\\Razer\\source\\repos\\RTCVision\\rtcvision\\classes\\globfunc.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{012834AA-C0CB-49AA-8674-9D9F71A27AF6}|RTCVision\\RTCVision.csproj|solutionrelative:rtcvision\\classes\\globfunc.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{012834AA-C0CB-49AA-8674-9D9F71A27AF6}|RTCVision\\RTCVision.csproj|C:\\Users\\Razer\\source\\repos\\RTCVision\\rtcvision\\classes\\globvar.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{012834AA-C0CB-49AA-8674-9D9F71A27AF6}|RTCVision\\RTCVision.csproj|solutionrelative:rtcvision\\classes\\globvar.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{012834AA-C0CB-49AA-8674-9D9F71A27AF6}|RTCVision\\RTCVision.csproj|C:\\Users\\Razer\\source\\repos\\RTCVision\\rtcvision\\forms\\frmmain.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
@@ -22,12 +26,20 @@
       "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\PLC\\RTCDahuaSdk\\MyDahuaCamera.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{012834AA-C0CB-49AA-8674-9D9F71A27AF6}|RTCVision\\RTCVision.csproj|C:\\Users\\Razer\\source\\repos\\RTCVision\\rtcvision\\forms\\frmvisionsettings.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{012834AA-C0CB-49AA-8674-9D9F71A27AF6}|RTCVision\\RTCVision.csproj|solutionrelative:rtcvision\\forms\\frmvisionsettings.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{012834AA-C0CB-49AA-8674-9D9F71A27AF6}|RTCVision\\RTCVision.csproj|c:\\users\\razer\\source\\repos\\rtcvision\\rtcvision\\forms\\frmmain.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{012834AA-C0CB-49AA-8674-9D9F71A27AF6}|RTCVision\\RTCVision.csproj|solutionrelative:rtcvision\\forms\\frmmain.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{012834AA-C0CB-49AA-8674-9D9F71A27AF6}|RTCVision\\RTCVision.csproj|C:\\Users\\Razer\\source\\repos\\RTCVision\\rtcvision\\classes\\globfunc.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{012834AA-C0CB-49AA-8674-9D9F71A27AF6}|RTCVision\\RTCVision.csproj|solutionrelative:rtcvision\\classes\\globfunc.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{012834AA-C0CB-49AA-8674-9D9F71A27AF6}|RTCVision\\RTCVision.csproj|C:\\Users\\Razer\\source\\repos\\RTCVision\\rtcvision\\classes\\mydahuacamera.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{012834AA-C0CB-49AA-8674-9D9F71A27AF6}|RTCVision\\RTCVision.csproj|solutionrelative:rtcvision\\classes\\mydahuacamera.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{012834AA-C0CB-49AA-8674-9D9F71A27AF6}|RTCVision\\RTCVision.csproj|C:\\Users\\Razer\\source\\repos\\RTCVision\\rtcvision\\classes\\lib.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{012834AA-C0CB-49AA-8674-9D9F71A27AF6}|RTCVision\\RTCVision.csproj|solutionrelative:rtcvision\\classes\\lib.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{012834AA-C0CB-49AA-8674-9D9F71A27AF6}|RTCVision\\RTCVision.csproj|C:\\Users\\Razer\\source\\repos\\RTCVision\\rtcvision\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{012834AA-C0CB-49AA-8674-9D9F71A27AF6}|RTCVision\\RTCVision.csproj|solutionrelative:rtcvision\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -37,90 +49,131 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 0,
+          "SelectedChildIndex": 7,
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 9,
               "Title": "Program.cs",
               "DocumentMoniker": "C:\\Users\\Razer\\source\\repos\\RTCVision\\RTCVision\\Program.cs",
               "RelativeDocumentMoniker": "RTCVision\\Program.cs",
               "ToolTip": "C:\\Users\\Razer\\source\\repos\\RTCVision\\RTCVision\\Program.cs",
               "RelativeToolTip": "RTCVision\\Program.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAACEAAAAMAAAAAAAAAA==",
+              "ViewState": "AgIAAAYAAAAAAAAAAAAAACEAAAAMAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-06-26T16:44:22.803Z",
-              "IsPinned": true,
+              "IsPinned": true
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "GlobVar.cs",
+              "DocumentMoniker": "C:\\Users\\Razer\\source\\repos\\RTCVision\\RTCVision\\Classes\\GlobVar.cs",
+              "RelativeDocumentMoniker": "RTCVision\\Classes\\GlobVar.cs",
+              "ToolTip": "C:\\Users\\Razer\\source\\repos\\RTCVision\\RTCVision\\Classes\\GlobVar.cs",
+              "RelativeToolTip": "RTCVision\\Classes\\GlobVar.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABAAAAA/AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-27T16:08:41.178Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 8,
+              "Title": "Lib.cs",
+              "DocumentMoniker": "C:\\Users\\Razer\\source\\repos\\RTCVision\\RTCVision\\Classes\\Lib.cs",
+              "RelativeDocumentMoniker": "RTCVision\\Classes\\Lib.cs",
+              "ToolTip": "C:\\Users\\Razer\\source\\repos\\RTCVision\\RTCVision\\Classes\\Lib.cs",
+              "RelativeToolTip": "RTCVision\\Classes\\Lib.cs",
+              "ViewState": "AgIAAEEEAAAAAAAAAAD4v8EEAABAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-27T16:07:58.929Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
               "Title": "MyDahuaCamera.cs",
               "DocumentMoniker": "D:\\PLC\\RTCDahuaSdk\\MyDahuaCamera.cs",
               "ToolTip": "D:\\PLC\\RTCDahuaSdk\\MyDahuaCamera.cs",
-              "ViewState": "AgIAAF0BAAAAAAAAAAAAAIoAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAAGAAAAAAAAAAAAAuwIoAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-06-27T07:59:13.373Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
-              "Title": "FrmVisionSettings.cs [Design]",
-              "DocumentMoniker": "C:\\Users\\Razer\\source\\repos\\RTCVision\\RTCVision\\Forms\\FrmVisionSettings.cs",
-              "RelativeDocumentMoniker": "RTCVision\\Forms\\FrmVisionSettings.cs",
-              "ToolTip": "C:\\Users\\Razer\\source\\repos\\RTCVision\\RTCVision\\Forms\\FrmVisionSettings.cs [Design]",
-              "RelativeToolTip": "RTCVision\\Forms\\FrmVisionSettings.cs [Design]",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-27T01:36:46.161Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 4,
               "Title": "FrmMain.cs [Design]",
               "DocumentMoniker": "C:\\Users\\Razer\\source\\repos\\RTCVision\\RTCVision\\Forms\\FrmMain.cs",
               "RelativeDocumentMoniker": "RTCVision\\Forms\\FrmMain.cs",
               "ToolTip": "C:\\Users\\Razer\\source\\repos\\RTCVision\\RTCVision\\Forms\\FrmMain.cs [Design]",
               "RelativeToolTip": "RTCVision\\Forms\\FrmMain.cs [Design]",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-27T01:36:44.694Z"
+              "WhenOpened": "2025-06-27T01:36:44.694Z",
+              "EditorCaption": " [Design]"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
+              "DocumentIndex": 2,
               "Title": "GlobFunc.cs",
               "DocumentMoniker": "C:\\Users\\Razer\\source\\repos\\RTCVision\\RTCVision\\Classes\\GlobFunc.cs",
               "RelativeDocumentMoniker": "RTCVision\\Classes\\GlobFunc.cs",
               "ToolTip": "C:\\Users\\Razer\\source\\repos\\RTCVision\\RTCVision\\Classes\\GlobFunc.cs",
               "RelativeToolTip": "RTCVision\\Classes\\GlobFunc.cs",
-              "ViewState": "AgIAABAAAAAAAAAAAAAQwBkAAAAmAAAAAAAAAA==",
+              "ViewState": "AgIAAEwAAAAAAAAAAADwv9cAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-26T16:51:10.57Z"
+              "WhenOpened": "2025-06-26T16:51:10.57Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 6,
               "Title": "FrmMain.cs",
               "DocumentMoniker": "C:\\Users\\Razer\\source\\repos\\RTCVision\\RTCVision\\Forms\\FrmMain.cs",
               "RelativeDocumentMoniker": "RTCVision\\Forms\\FrmMain.cs",
               "ToolTip": "C:\\Users\\Razer\\source\\repos\\RTCVision\\RTCVision\\Forms\\FrmMain.cs",
               "RelativeToolTip": "RTCVision\\Forms\\FrmMain.cs",
-              "ViewState": "AgIAAMADAAAAAAAAAAAAwOMDAAABAAAAAAAAAA==",
+              "ViewState": "AgIAAG8DAAAAAAAAAAAcwNADAAA+AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-26T16:39:25.71Z"
+              "WhenOpened": "2025-06-26T16:39:25.71Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 0,
               "Title": "FrmVisionSettings.cs",
               "DocumentMoniker": "C:\\Users\\Razer\\source\\repos\\RTCVision\\RTCVision\\Forms\\FrmVisionSettings.cs",
               "RelativeDocumentMoniker": "RTCVision\\Forms\\FrmVisionSettings.cs",
               "ToolTip": "C:\\Users\\Razer\\source\\repos\\RTCVision\\RTCVision\\Forms\\FrmVisionSettings.cs",
               "RelativeToolTip": "RTCVision\\Forms\\FrmVisionSettings.cs",
-              "ViewState": "AgIAAHUCAAAAAAAAAADgv2QAAAAIAAAAAAAAAA==",
+              "ViewState": "AgIAAK0BAAAAAAAAAIAwwMgBAAAVAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-06-26T16:39:23.922Z"
+              "WhenOpened": "2025-06-26T16:39:23.922Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "FrmVisionSettings.cs [Design]",
+              "DocumentMoniker": "C:\\Users\\Razer\\source\\repos\\RTCVision\\RTCVision\\Forms\\FrmVisionSettings.cs",
+              "RelativeDocumentMoniker": "RTCVision\\Forms\\FrmVisionSettings.cs",
+              "ToolTip": "C:\\Users\\Razer\\source\\repos\\RTCVision\\RTCVision\\Forms\\FrmVisionSettings.cs [Design]",
+              "RelativeToolTip": "RTCVision\\Forms\\FrmVisionSettings.cs [Design]",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-27T01:36:46.161Z",
+              "EditorCaption": " [Design]"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "MyDahuaCamera.cs",
+              "DocumentMoniker": "C:\\Users\\Razer\\source\\repos\\RTCVision\\RTCVision\\Classes\\MyDahuaCamera.cs",
+              "RelativeDocumentMoniker": "RTCVision\\Classes\\MyDahuaCamera.cs",
+              "ToolTip": "C:\\Users\\Razer\\source\\repos\\RTCVision\\RTCVision\\Classes\\MyDahuaCamera.cs",
+              "RelativeToolTip": "RTCVision\\Classes\\MyDahuaCamera.cs",
+              "ViewState": "AgIAAFYDAAAAAAAAAAAewGQDAAAtAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-27T16:58:36.175Z"
             }
           ]
         }

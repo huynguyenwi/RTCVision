@@ -83,6 +83,7 @@ namespace RTCVision
         bool _isNew = false;
 
         private MyDahuaCamera _dahuaCamera = new MyDahuaCamera();
+        private Thread _liveThread;
 
 
         #region FUNCTIONS
@@ -890,6 +891,16 @@ namespace RTCVision
             //if (InputTextID.Length != 0)
             //    HOperatorSet.ClearHandle(InputTextID);
             DialogResult = DialogResult.OK;
+
+
+            //Cam Dahua
+            if (_isLive)
+            {
+                _isLive = false;
+                _liveThread?.Join();
+            }
+            _dahuaCamera.StopGrabbing();
+            _dahuaCamera.Close();
         }
         void creatModelRegion(int x, int y, double phi, int length1, int length2)
         {
@@ -1197,8 +1208,134 @@ namespace RTCVision
             SaveTriggerInfo();
         }
 
+        private void btnConnectDahua_Click(object sender, EventArgs e)
+        {
 
+            if (cbDevice.Text.Trim() == "")
+            {
+                MessageBox.Show("Please choose a Camera!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            if (btnConnectCamera.Text.ToLower() == "connect")
+            {
+                string deviceName = cbDeviceDahua.Text.Trim();
+                bool result = _dahuaCamera.Open(deviceName);
+
+                if (!result)
+                {
+                    MessageBox.Show("Failed to connect Dahua camera.\n" + _dahuaCamera.ErrorMessage,
+                        "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+
+                _dahuaCamera.GrabberMode = "ASync"; // hoặc "Sync" tùy bạn dùng
+                _dahuaCamera.StartGrabbing();
+
+                btnConnectCamera.Text = "Disconnect";
+                btnConnectCamera.BackColor = Color.Green;
+                btnSnap.Enabled = true;
+                btnLive.Enabled = true;
+
+                SnapImageDahua();
+            }
+            else
+            {
+                _dahuaCamera.StopGrabbing();
+                _dahuaCamera.Close();
+
+                btnConnectCamera.Text = "Connect";
+                btnConnectCamera.BackColor = SystemColors.Control;
+
+                btnSnap.Enabled = false;
+                btnLive.Enabled = false;
+                HWindowsMain.HalconWindow.ClearWindow();
+            }
+        }
+
+        private void SnapImageDahua()
+        {
+            HImage image = _dahuaCamera.Snap(true); // true nếu dùng phần mềm để trigger
+
+            if (image != null && image.Key != IntPtr.Zero)
+            {
+                _hImage = image;
+                Lib.SmartSetPart(_hImage, HWindowsMain); // Nếu bạn có hàm crop
+                HWindowsMain.HalconWindow.DispImage(_hImage);
+            }
+            else
+            {
+                MessageBox.Show("Snap failed: " + _dahuaCamera.ErrorMessage);
+            }
+        }
+
+        private void LiveCameraDahua()
+        {
+            _liveThread = new Thread(() =>
+            {
+                while (_isLive)
+                {
+                    var bmp = _dahuaCamera.GetLatestBitmap();
+                    if (bmp != null)
+                    {
+                        var img = _dahuaCamera.Bitmap2HImage(bmp);
+                        if (img != null && img.Key != IntPtr.Zero)
+                        {
+                            Invoke(new Action(() =>
+                            {
+                                Lib.SmartSetPart(img, HWindowsMain);
+                                HWindowsMain.HalconWindow.DispImage(img);
+                            }));
+                        }
+                    }
+                    Thread.Sleep(30);
+                }
+            });
+            _liveThread.IsBackground = true;
+            _liveThread.Start();
+        }
        
+        private void btnSnapDahua_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                SnapImageDahua();
+            }
+            catch
+            {
+                MessageBox.Show("Snap Image Fail!!!");
+            }
+        }
+
+        private void btnDetectDahua_Click(object sender, EventArgs e)
+        {
+            cbDeviceDahua.Properties.Items.Clear();
+
+            var cameraList = MyDahuaCamera.GetListDeviceInfoNames();
+            foreach (string camName in cameraList)
+                cbDeviceDahua.Properties.Items.Add(camName);
+
+            if (cameraList.Count > 0)
+                cbDeviceDahua.SelectedIndex = 0;
+        }
+
+        private void btnLiveDahua_Click(object sender, EventArgs e)
+        {
+            if (!_isLive)
+            {
+                _isLive = true;
+                LiveCameraDahua();
+                btnLiveDahua.Text = "Stop Live";
+                btnSnapDahua.Enabled = false;
+            }
+            else
+            {
+                _isLive = false;
+                _liveThread?.Join();
+                btnLiveDahua.Text = "Live";
+                btnSnapDahua.Enabled = true;
+            }
+        }
     }
 
     public class Device
