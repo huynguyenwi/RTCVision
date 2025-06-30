@@ -65,8 +65,10 @@ namespace RTCVision
         private HObject _matchingOut_ContoursTrain = new HObject();
         private HObject _matchingOut_ContoursFind = new HObject();
 
-        private string _ipAddress = "127.0.0.1";
-        private int _portNumber = 4000;
+        private string _ipTCP= "127.0.0.1";
+        private int _portTCP = 4000;
+        private string _triggerTCP = "C";
+
         private string _comPort = "COM2";
         private int _baudRate = 9600;
         private string _triggerValue = "C";
@@ -89,14 +91,15 @@ namespace RTCVision
 
         #endregion
 
+
         #region PLC Register Definitions
         // Định nghĩa các thanh ghi PLC
-        private const string PLC_READY_REGISTER = "D100"; 
-        private const string PLC_BUSY_REGISTER = "D101"; 
-        private const string PLC_FINISH_REGISTER = "D102";
-        private const string PLC_OK_REGISTER = "D109";    
-        private const string PLC_NG_REGISTER = "D110";
-        private const string PLC_TRIGGER_REGISTER = "D120";
+        private string _Plc_Ready_Register = "D100";
+        private string _Plc_Busy_Register = "D101";
+        private string _Plc_Finish_Register = "D102";
+        private string _Plc_Ok_Register = "D109";
+        private string _Plc_Ng_Register = "D110";
+        private string _Plc_Trigger_Register = "D120";
         #endregion
 
         #region Functions
@@ -176,21 +179,33 @@ namespace RTCVision
         }
         private void LoadTriggerInfo()
         {
-            /* _ipAddress = Lib.ExecuteScalar($"SELECT {CColName.IpAddress} FROM {CTableName.TriggerSettings} WHERE {CColName.ModelId}='{_currentModelId}'").ToString();
-             _portNumber = Lib.ToInt(Lib.ExecuteScalar(
-                 $"SELECT {CColName.PortNumber} FROM {CTableName.TriggerSettings} WHERE {CColName.ModelId}='{_currentModelId}'"));
-             _triggerValue = Lib.ExecuteScalar($"SELECT {CColName.TriggerValue} FROM {CTableName.TriggerSettings} WHERE {CColName.ModelId}='{_currentModelId}'").ToString();*/
+            _comPort = Lib.ExecuteScalar($"SELECT {CColName.ComPort} FROM {CTableName.RS232Settings} WHERE {CColName.ModelId}='{_currentModelId}'").ToString();
+            _baudRate = Lib.ToInt(Lib.ExecuteScalar($"SELECT {CColName.BaudRate} FROM {CTableName.RS232Settings} WHERE {CColName.ModelId}='{_currentModelId}'"));
+            _triggerValue = Lib.ExecuteScalar($"SELECT {CColName.TriggerValue} FROM {CTableName.RS232Settings} WHERE {CColName.ModelId}='{_currentModelId}'").ToString();
 
-            _comPort = Lib.ExecuteScalar($"SELECT {CColName.IpAddress} FROM {CTableName.TriggerSettings} WHERE {CColName.ModelId}='{_currentModelId}'").ToString();
-            _baudRate = Lib.ToInt(Lib.ExecuteScalar($"SELECT {CColName.PortNumber} FROM {CTableName.TriggerSettings} WHERE {CColName.ModelId}='{_currentModelId}'"));
-            _triggerValue = Lib.ExecuteScalar($"SELECT {CColName.TriggerValue} FROM {CTableName.TriggerSettings} WHERE {CColName.ModelId}='{_currentModelId}'").ToString();
-
-
-            _plcIpAddress = "192.168.9.99";
-            _plcPortNumber = 12234;     
-            _triggerValuePLC = "1";
         }
-        
+
+        private void LoadRegisterInfo()
+        {
+            _Plc_Ready_Register = Lib.ExecuteScalar($"SELECT {CColName.ReadyRegister} FROM RegisterSettings WHERE {CColName.ModelId}='{_currentModelId}'").ToString();
+            _Plc_Busy_Register = Lib.ExecuteScalar($"SELECT {CColName.BusyRegister} FROM RegisterSettings WHERE {CColName.ModelId}='{_currentModelId}'").ToString();
+            _Plc_Finish_Register = Lib.ExecuteScalar($"SELECT {CColName.FinishRegister} FROM RegisterSettings WHERE {CColName.ModelId}='{_currentModelId}'").ToString();
+            _Plc_Ok_Register = Lib.ExecuteScalar($"SELECT {CColName.OKRegister} FROM RegisterSettings WHERE {CColName.ModelId}='{_currentModelId}'").ToString();
+            _Plc_Ng_Register = Lib.ExecuteScalar($"SELECT {CColName.NGRegister} FROM RegisterSettings WHERE {CColName.ModelId}='{_currentModelId}'").ToString();
+            _Plc_Trigger_Register = Lib.ExecuteScalar($"SELECT {CColName.TriggerRegister} FROM RegisterSettings WHERE {CColName.ModelId}='{_currentModelId}'").ToString();
+            _plcIpAddress = Lib.ExecuteScalar($"SELECT {CColName.IpPLC} FROM RegisterSettings WHERE {CColName.ModelId}='{_currentModelId}'").ToString();
+            _plcPortNumber = Lib.ToInt(Lib.ExecuteScalar($"SELECT {CColName.PortPLC} FROM RegisterSettings WHERE {CColName.ModelId}='{_currentModelId}'").ToString());
+
+        }
+        private void LoadTriggerTCPInfo()
+        {
+            _ipTCP = Lib.ExecuteScalar($"SELECT {CColName.IpTCP} FROM TCPSetting WHERE {CColName.ModelId}='{_currentModelId}'").ToString();
+            _portTCP = Lib.ToInt(Lib.ExecuteScalar($"SELECT {CColName.PortTCP} FROM TCPSetting WHERE {CColName.ModelId}='{_currentModelId}'"));
+            _triggerTCP = Lib.ExecuteScalar($"SELECT {CColName.TriggerTCP} FROM TCPSetting WHERE {CColName.ModelId}='{_currentModelId}'").ToString();
+
+        }
+
+
         private bool LoadModelInfo()
         {
             try
@@ -212,6 +227,10 @@ namespace RTCVision
                 LoadDict();
 
                 LoadTriggerInfo();
+
+                LoadRegisterInfo();
+
+                LoadTriggerTCPInfo();
 
                 return true;
             }
@@ -284,6 +303,9 @@ namespace RTCVision
                     _socket = null;
                 }
 
+                lblStatusPLCRS.Text = "TCP Disconnected";
+                lblReadyPLC.BackColor = Color.Gray;
+
                 return true;
             }
             catch (Exception)
@@ -292,21 +314,23 @@ namespace RTCVision
                 return false;
             }
         }
-       /* private bool ConnectTCP()
+       private bool ConnectTCP()
         {
             try
             {
                 _socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-                var endPoint = new IPEndPoint(IPAddress.Parse(_ipAddress), _portNumber);
+                var endPoint = new IPEndPoint(IPAddress.Parse(_ipTCP), _portTCP);
                 _socket.Connect(endPoint);
+                lblStatusPLCRS.Text = "TCP Connected";
+                lblReadyPLC.BackColor = Color.Red;
                 return true;
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Can't connect to {_ipAddress}:{_portNumber}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Can't connect to {_ipTCP}:{_portTCP}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return false;
             }
-        }*/
+        }
 
         private bool ConnectSerial()
         {
@@ -329,6 +353,9 @@ namespace RTCVision
 
                 _serialPort.Open();
 
+                lblStatusPLCRS.Text = "RS232 Connected";
+                lblReadyPLC.BackColor = Color.Red;
+
                 return true;
             }
             catch (Exception ex)
@@ -349,6 +376,8 @@ namespace RTCVision
                     _serialPort.Dispose();
                     _serialPort = null;
                 }
+                lblStatusPLCRS.Text = "RS232 Disconnected";
+                lblReadyPLC.BackColor = Color.Gray;
 
                 return true;
             }
@@ -390,6 +419,13 @@ namespace RTCVision
                 }
                 _plcClient = new SLMPClient(_plcIpAddress, _plcPortNumber);
                 _plcClient.Connect();
+                if (!_plcClient.IsConnected)
+                {
+                    //MessageBox.Show("Không thể kết nối PLC.\n" + _plcClient.ErrMessage, "PLC", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return false;
+                }
+                lblStatusPLCRS.Text = "PLC Connected";
+                lblReadyPLC.BackColor = Color.Red;
                 return true;
             }
             catch (Exception ex)
@@ -410,6 +446,8 @@ namespace RTCVision
                 {
                     _plcClient.Disconnect();
                 }
+                lblStatusPLCRS.Text = "PLC Disconnected";
+                lblReadyPLC.BackColor = Color.Gray;
                 return true;
             }
             catch (Exception ex)
@@ -521,19 +559,7 @@ namespace RTCVision
                             if (_matchingOut_ContoursFind != null && _matchingOut_ContoursFind.Key != IntPtr.Zero)
                                 HWindowsMain.HalconWindow.DispObj(_matchingOut_ContoursFind);
                         }
-                        /* if (lblStatus.InvokeRequired)
-                             lblStatus.Invoke(new MethodInvoker(() =>
-                             {
-                                 lblStatus.Visible = true;
-                                 lblStatus.BackColor = _matchingPass.I == 1 ? Color.Green : Color.Red;
-                                 lblStatus.Text = _matchingPass.I == 1 ? "OK" : "NG";
-                             }));
-                         else
-                         {
-                             lblStatus.Visible = false;
-                             lblStatus.BackColor = _matchingPass.I == 1 ? Color.Green : Color.Red;
-                             lblStatus.Text = _matchingPass.I == 1 ? "OK" : "NG";
-                         }*/
+                        
 
                         string result = _matchingPass.I == 1 ? "OK" : "NG";
 
@@ -551,20 +577,6 @@ namespace RTCVision
                             lblStatus.BackColor = result == "OK" ? Color.Green : Color.Red;
                             lblStatus.Text = result;
                         }
-/*
-                        // Gửi kết quả về server
-                        if (_socket != null && _socket.Connected)
-                        {
-                            try
-                            {
-                                byte[] data = Encoding.ASCII.GetBytes(result + "\n");
-                                _socket.Send(data);
-                            }
-                            catch (Exception ex)
-                            {
-
-                            }
-                        }*/
 
                         // Gửi kết quả trở lại qua serial
                         if (_serialPort != null && _serialPort.IsOpen)
@@ -587,6 +599,8 @@ namespace RTCVision
                 }
             }
         }
+
+
 
         /// <summary>
         /// Luồng xử lý chính của chương trình, đọc trigger và chạy xử lý ảnh.
@@ -611,14 +625,14 @@ namespace RTCVision
                 try
                 { 
                     // 1. Đọc tín hiệu trigger từ D120
-                    int triggerSignal = _plcClient.ReadWord(PLC_TRIGGER_REGISTER, out success);
+                    int triggerSignal = _plcClient.ReadWord(_Plc_Trigger_Register, out success);
 
                     if (triggerSignal.ToString() == _triggerValuePLC) // Nếu D120= trigger value (1)
                         {
                         // 2. Bật D101 (Busy) = 1
-                        _plcClient.WriteInt(PLC_BUSY_REGISTER, 1);
-                        _plcClient.WriteInt(PLC_FINISH_REGISTER, 0);
-                        _plcClient.WriteInt(PLC_TRIGGER_REGISTER, 0); // Reset D120 để xác nhận đã nhận trigger
+                        _plcClient.WriteInt(_Plc_Busy_Register, 1);
+                        _plcClient.WriteInt(_Plc_Finish_Register, 0);
+                        _plcClient.WriteInt(_Plc_Trigger_Register, 0); // Reset D120 để xác nhận đã nhận trigger
 
                         // 3. Chụp ảnh
                         _hImage = GlobFunc.SnapImage(_frameGrabber);
@@ -626,10 +640,10 @@ namespace RTCVision
                         if (_hImage == null || _hImage.Key == IntPtr.Zero)
                         {
                             // Nếu không chụp được ảnh, báo NG và tắt Busy
-                            _plcClient.WriteInt(PLC_NG_REGISTER, 1); // Báo NG
+                            _plcClient.WriteInt(_Plc_Ng_Register, 1); // Báo NG
                             Thread.Sleep(50); // Đợi PLC kịp đọc
-                            _plcClient.WriteInt(PLC_FINISH_REGISTER, 0); // Bật Finish
-                            _plcClient.WriteInt(PLC_BUSY_REGISTER, 0); // Tắt Busy
+                            _plcClient.WriteInt(_Plc_Finish_Register, 1); // Bật Finish
+                            _plcClient.WriteInt(_Plc_Busy_Register, 0); // Tắt Busy
                             continue;
                         }
 
@@ -677,17 +691,19 @@ namespace RTCVision
                             {
                                 if (result == "OK")
                                 {
-                                    _plcClient.WriteInt(PLC_OK_REGISTER, 1); // Ghi 1 vào D109
+                                    _plcClient.WriteInt(_Plc_Ok_Register, 1); // Ghi 1 vào D109
+                                    _plcClient.WriteInt(_Plc_Ng_Register, 0);
                                 }
                                 else
                                 {
-                                    _plcClient.WriteInt(PLC_NG_REGISTER, 1); // Ghi 1 vào D110
+                                    _plcClient.WriteInt(_Plc_Ng_Register, 1); // Ghi 1 vào D110
+                                    _plcClient.WriteInt(_Plc_Ok_Register, 0);
                                 }
                                 Thread.Sleep(50); // Đợi một chút để PLC kịp đọc kết quả
 
                                 // 6. Bật D102 (Finish) và Tắt D101 (Busy) 
-                                _plcClient.WriteInt(PLC_FINISH_REGISTER, 1);
-                                _plcClient.WriteInt(PLC_BUSY_REGISTER, 0);
+                                _plcClient.WriteInt(_Plc_Finish_Register, 1);
+                                _plcClient.WriteInt(_Plc_Busy_Register, 0);
 
                             }
                         }
@@ -705,6 +721,89 @@ namespace RTCVision
             }
         }
 
+        private void RunProgramProcessTCP()
+        {
+            if (HWindowsMain.InvokeRequired)
+                HWindowsMain.Invoke(new MethodInvoker(() =>
+                {
+                    HWindowsMain.HalconWindow.SetDraw("margin");
+                    HWindowsMain.HalconWindow.SetLineWidth(2);
+                }));
+            else
+            {
+                HWindowsMain.HalconWindow.SetDraw("margin");
+                HWindowsMain.HalconWindow.SetLineWidth(2);
+            }
+
+            while (_isRun)
+            {
+                try
+                {
+                    // Kiểm tra tín hiệu trigger
+                    if (_realTriggerValue != _triggerValue)
+                        continue;
+                    _realTriggerValue = string.Empty;
+                    // Chụp lấy ảnh
+                    _hImage = GlobFunc.SnapImage(_frameGrabber);
+
+                    if (_hImage == null || _hImage.Key == IntPtr.Zero)
+                        continue;
+
+                    // Chạy procedure
+                    if (RunMatchingModel(out string errMessage))
+                    {
+                        if (HWindowsMain.InvokeRequired)
+                            HWindowsMain.Invoke(new MethodInvoker(() =>
+                            {
+                                HWindowsMain.HalconWindow.SetColor(_matchingPass.I == 1 ? "green" : "red");
+                                HWindowsMain.HalconWindow.ClearWindow();
+                                HWindowsMain.HalconWindow.DispImage(_hImage);
+                                if (_matchingOut_ContoursFind != null && _matchingOut_ContoursFind.Key != IntPtr.Zero)
+                                    HWindowsMain.HalconWindow.DispObj(_matchingOut_ContoursFind);
+                            }));
+                        else
+                        {
+                            HWindowsMain.HalconWindow.SetColor(_matchingPass.I == 1 ? "green" : "red");
+                            HWindowsMain.HalconWindow.ClearWindow();
+                            HWindowsMain.HalconWindow.DispImage(_hImage);
+                            if (_matchingOut_ContoursFind != null && _matchingOut_ContoursFind.Key != IntPtr.Zero)
+                                HWindowsMain.HalconWindow.DispObj(_matchingOut_ContoursFind);
+                        }
+                        if (lblStatus.InvokeRequired)
+                            lblStatus.Invoke(new MethodInvoker(() =>
+                            {
+                                lblStatus.Visible = true;
+                                lblStatus.BackColor = _matchingPass.I == 1 ? Color.Green : Color.Red;
+                                lblStatus.Text = _matchingPass.I == 1 ? "OK" : "NG";
+                            }));
+                        else
+                        {
+                            lblStatus.Visible = false;
+                            lblStatus.BackColor = _matchingPass.I == 1 ? Color.Green : Color.Red;
+                            lblStatus.Text = _matchingPass.I == 1 ? "OK" : "NG";
+                        }
+                        // Gửi kết quả về server
+                        if (_socket != null && _socket.Connected)
+                        {
+                            try
+                            {
+                                string result = _matchingPass.I == 1 ? "OK" : "NG";
+                                byte[] data = Encoding.ASCII.GetBytes(result + "\n");
+                                _socket.Send(data);
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine("Lỗi gửi TCP: " + ex.Message);
+                            }
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                }
+            }
+        }
+
 
         private void StopProgram()
         {
@@ -715,16 +814,6 @@ namespace RTCVision
             _threadRun?.Join();
             _threadRun = null;
 
-            /* try
-             {
-                 _threadReadTrigger.Abort();
-                 _threadReadTrigger = null;
-             }
-             catch
-             {
-             }
-
-             DisconnectTCP();*/
             DisconnectSerial();
 
             GlobFunc.DisconnectCamera(_frameGrabber);
@@ -758,7 +847,8 @@ namespace RTCVision
             }
             _threadReadySignal = null;
 
-            DisconnectPLC(); 
+            DisconnectPLC();
+
 
             GlobFunc.DisconnectCamera(_frameGrabber);
 
@@ -777,6 +867,7 @@ namespace RTCVision
             btnStop.Enabled = _isRun;
             btnStart.Enabled = !_isRun;
         }
+       
         /// <summary>
         /// Phương thức kiểm tra trạng thái kết nối PLC 
         /// </summary>
@@ -786,15 +877,17 @@ namespace RTCVision
             {
                 while (_isRun && _plcClient != null && _plcClient.IsConnected)
                 {
-                    // Ghi 1 vào D100
-                    _plcClient.WriteInt(PLC_READY_REGISTER, 1);
-                    Thread.Sleep(500); // Đợi 500ms
+                    _plcClient.WriteInt(_Plc_Ready_Register, 1);
+                    SetLabelReadyPLC(Color.Red);
 
-                    if (!_isRun || _plcClient == null || !_plcClient.IsConnected) break; // Kiểm tra lại sau khi chờ
+                    Thread.Sleep(500);
 
-                    // Ghi 0 vào D100
-                    _plcClient.WriteInt(PLC_READY_REGISTER, 0);
-                    Thread.Sleep(500); // Đợi 500ms
+                    if (!_isRun || _plcClient == null || !_plcClient.IsConnected) break;
+
+                    _plcClient.WriteInt(_Plc_Ready_Register, 0);
+                    SetLabelReadyPLC(Color.Gray);
+
+                    Thread.Sleep(500);
                 }
             }
             catch (Exception ex)
@@ -803,36 +896,58 @@ namespace RTCVision
             }
             finally
             {
-                // Đảm bảo D100 về 0 khi luồng kết thúc (nếu có thể)
                 if (_plcClient != null && _plcClient.IsConnected)
                 {
-                    _plcClient.WriteInt(PLC_READY_REGISTER, 0);
+                    _plcClient.WriteInt(_Plc_Ready_Register, 0);
                 }
             }
+        }
+
+        private void SetLabelReadyPLC(Color color)
+        {
+            if (lblReadyPLC.InvokeRequired)
+                lblReadyPLC.Invoke(new Action(() => lblReadyPLC.BackColor = color));
+            else
+                lblReadyPLC.BackColor = color;
+        }
+        private void StopProgramTCP()
+        {
+            if (!_isRun)
+                return;
+
+            _isRun = false;
+            _threadRun?.Join();
+            _threadRun = null;
+
+            try
+            {
+                _threadReadTrigger.Abort();
+                _threadReadTrigger = null;
+            }
+            catch
+            {
+            }
+
+            DisconnectTCP();
+
+            GlobFunc.DisconnectCamera(_frameGrabber);
+
+            lblStatus.Visible = false;
+            btnModelManager.Enabled = !_isRun;
+            btnVisionSettings.Enabled = !_isRun;
+
+            btnStop.Enabled = _isRun;
+            btnStart.Enabled = !_isRun;
         }
         private void RunProgram()
         {
             if (!LoadModelInfo())
                 return;
-            /* if (!ConnectTCP())
-                 return;*/
+
             if (!ConnectSerial()) 
                  return;
 
-           /* // 1. Kết nối PLC
-            if (!ConnectPLC())
-            {
-                MessageBox.Show("Failed to connect to PLC.", "Connection Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
-            }
-
-            // Đặt PLC_READY_REGISTER về 0 trước khi khởi động luồng Ready Signal
-            if (_plcClient != null && _plcClient.IsConnected)
-            {
-                _plcClient.WriteInt(PLC_READY_REGISTER, 0);
-            }
-*/
-
+           
             if (!GlobFunc.ConnectCamera(_interfaceName, _deviceName, out _frameGrabber, out string errMessage))
             {
                 MessageBox.Show(errMessage, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -850,17 +965,7 @@ namespace RTCVision
             _realTriggerValue = string.Empty;
             _isRun = true;
 
-           /* //PLC
-            // Khởi động luồng Ready Signal
-            _threadReadySignal = new Thread(ReadySignalProcess);
-            _threadReadySignal.IsBackground = true; // Đặt là luồng nền để nó tự kết thúc khi ứng dụng đóng
-            _threadReadySignal.Start();*/
-
-
-            //TCP
-            //_threadReadTrigger = new Thread(ReadTriggerValue);
-            //_threadReadTrigger.Start();
-
+          
             //Serial
             _threadRun = new Thread(RunProgramProcess);
             _threadRun.Start();
@@ -875,11 +980,7 @@ namespace RTCVision
         {
             if (!LoadModelInfo())
                 return;
-            /* if (!ConnectTCP())
-                 return;*/
-            /*if (!ConnectSerial()) 
-                 return;*/
-
+          
             // 1. Kết nối PLC
             if (!ConnectPLC())
             {
@@ -887,15 +988,15 @@ namespace RTCVision
                 return;
             }
 
-            // Reset các thanh ghi PLC về 0 trước khi ngắt kết nối
+            // Reset các thanh ghi PLC về 0 
             if (_plcClient != null && _plcClient.IsConnected)
             {
-                _plcClient.WriteInt(PLC_READY_REGISTER, 0);
-                _plcClient.WriteInt(PLC_BUSY_REGISTER, 0);
-                _plcClient.WriteInt(PLC_FINISH_REGISTER, 0);
-                _plcClient.WriteInt(PLC_TRIGGER_REGISTER, 0);
-                _plcClient.WriteInt(PLC_OK_REGISTER, 0);
-                _plcClient.WriteInt(PLC_NG_REGISTER, 0);
+                _plcClient.WriteInt(_Plc_Ready_Register, 0);
+                _plcClient.WriteInt(_Plc_Busy_Register, 0);
+                _plcClient.WriteInt(_Plc_Finish_Register, 0);
+                _plcClient.WriteInt(_Plc_Trigger_Register, 0);
+                _plcClient.WriteInt(_Plc_Ok_Register, 0);
+                _plcClient.WriteInt(_Plc_Ng_Register, 0);
             }
 
 
@@ -921,16 +1022,45 @@ namespace RTCVision
             //PLC
             // Khởi động luồng Ready Signal
             _threadReadySignal = new Thread(ReadySignalProcess);
-            _threadReadySignal.IsBackground = true; // Đặt là luồng nền để nó tự kết thúc khi ứng dụng đóng
+            _threadReadySignal.IsBackground = true; 
             _threadReadySignal.Start();
-
-
-            //TCP
-            //_threadReadTrigger = new Thread(ReadTriggerValue);
-            //_threadReadTrigger.Start();
-
-            //Serial
+        
+            //PLC
             _threadRun = new Thread(RunProgramProcessPLC);
+            _threadRun.Start();
+
+            btnModelManager.Enabled = !_isRun;
+            btnVisionSettings.Enabled = !_isRun;
+            btnStop.Enabled = _isRun;
+            btnStart.Enabled = !_isRun;
+        }
+        private void RunProgramTCP()
+        {
+            if (!LoadModelInfo())
+                return;
+            if (!ConnectTCP())
+                return;
+            if (!GlobFunc.ConnectCamera(_interfaceName, _deviceName, out _frameGrabber, out string errMessage))
+            {
+                MessageBox.Show(errMessage, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            if (_matchingOut_ModelID == null || _matchingOut_ModelID.H == null ||
+                _matchingOut_ModelID.H == IntPtr.Zero)
+            {
+                MessageBox.Show("Run Matching Failed!!!.\nPlease train before run.", "Warning", MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+                return;
+            }
+
+            _realTriggerValue = string.Empty;
+            _isRun = true;
+
+            _threadReadTrigger = new Thread(ReadTriggerValue);
+            _threadReadTrigger.Start();
+
+            _threadRun = new Thread(RunProgramProcessTCP);
             _threadRun.Start();
 
             btnModelManager.Enabled = !_isRun;
@@ -971,26 +1101,43 @@ namespace RTCVision
 
         private void btnStart_Click(object sender, EventArgs e)
         {
-            RunProgram();
+            //RunProgram();
+            if (GlobVar.ChooseRadio == "RS232")
+            {
+                RunProgram();
+            }
+            else if (GlobVar.ChooseRadio == "PLC")
+            {
+                RunProgramPLC();
+            }
+            else if(GlobVar.ChooseRadio == "TCP")
+            {
+                RunProgramTCP();
+            }    
         }
 
         private void btnStop_Click(object sender, EventArgs e)
         {
-            StopProgram();
+            //StopProgram();
+            if (GlobVar.ChooseRadio == "RS232")
+            {
+                StopProgram();
+            }
+            else if (GlobVar.ChooseRadio == "PLC")
+            {
+                StopProgramPLC();
+
+            }
+            else if (GlobVar.ChooseRadio == "TCP")
+            {
+                StopProgramTCP();
+
+            }
         }
         private void HWindowsMain_Load(object sender, EventArgs e)
         {
             this.MouseWheel += HWindowsMain.HSmartWindowControl_MouseWheel;
         }
 
-        private void btnStartPLC_Click(object sender, EventArgs e)
-        {
-            RunProgramPLC();
-        }
-
-        private void btnStopPLC_Click(object sender, EventArgs e)
-        {
-            StopProgramPLC();
-        }
     }
 }

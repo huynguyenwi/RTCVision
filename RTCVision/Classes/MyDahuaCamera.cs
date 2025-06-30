@@ -366,6 +366,36 @@ namespace RTCDahuaSdk
         /// Dừng lấy ảnh
         /// </summary>
         /// <returns>True: Thành công; False: Thất bại</returns>
+       /* public bool StopGrabbing()
+         {
+             try
+             {
+                 ErrorMessage = string.Empty;
+
+                 if (GrabberMode == "ASync")
+                 {
+                     m_bGrabbing = false;
+                     m_bGenerateImage = false;
+                     _receiveThread.Join();
+                     _generateImageThread.Join();
+                     m_stopWatch.Stop();
+                 }
+
+                 if (IMVDefine.IMV_OK != MySelf.IMV_StopGrabbing())
+                 {
+                     ErrorMessage = "Stop Grabbing Fail!";
+                     return false;
+                 }
+
+                 return true;
+             }
+             catch (Exception ex)
+             {
+                 ErrorMessage = ex.Message;
+                 return false;
+             }
+
+         }*/
         public bool StopGrabbing()
         {
             try
@@ -376,9 +406,20 @@ namespace RTCDahuaSdk
                 {
                     m_bGrabbing = false;
                     m_bGenerateImage = false;
-                    _receiveThread.Join();
-                    _generateImageThread.Join();
-                    m_stopWatch.Stop();
+
+                    if (_receiveThread != null && _receiveThread.IsAlive)
+                        _receiveThread.Join();
+
+                    if (_generateImageThread != null && _generateImageThread.IsAlive)
+                        _generateImageThread.Join();
+
+                    m_stopWatch?.Stop();
+                }
+
+                if (MySelf == null)
+                {
+                    ErrorMessage = "Camera chưa được khởi tạo.";
+                    return false;
                 }
 
                 if (IMVDefine.IMV_OK != MySelf.IMV_StopGrabbing())
@@ -394,8 +435,8 @@ namespace RTCDahuaSdk
                 ErrorMessage = ex.Message;
                 return false;
             }
-
         }
+
 
         private CancellationTokenSource cancellationTokenSourceCheckConnected = new CancellationTokenSource();
 

@@ -13,7 +13,8 @@ namespace RTCVision.Consts
         public const string ModelCam = "ModelCam";
         public const string Regions = "Regions";
         public const string Matching = "Matching";
-        public const string TriggerSettings = "TriggerSettings";
+        public const string RS232Settings = "RS232Settings";
+        public const string RegisterSettings = "RegisterSettings";
     }
     public class CColName
     {
@@ -23,9 +24,20 @@ namespace RTCVision.Consts
         public const string OrderNum = "OrderNum";
         public const string CamName = "CamName";
         public const string ModelId = "ModelId";
-        public const string IpAddress = "IpAddress";
-        public const string PortNumber = "PortNumber";
+        public const string ReadyRegister = "ReadyRegister";
+        public const string BusyRegister = "BusyRegister";
+        public const string FinishRegister = "FinishRegister";
+        public const string OKRegister = "OKRegister";
+        public const string NGRegister = "NGRegister";
+        public const string TriggerRegister = "TriggerRegister";
+        public const string ComPort = "ComPort";
+        public const string BaudRate = "BaudRate";
         public const string TriggerValue = "TriggerValue";
+        public const string IpPLC = "IpPLC";
+        public const string PortPLC = "PortPLC";
+        public const string IpTCP = "IpTCP";
+        public const string PortTCP = "PortTCP";
+        public const string TriggerTCP = "TriggerTCP";
         public const string RegionType = "RegionType";
         public const string InterfaceName = "InterfaceName";
         public const string DeviceName = "DeviceName";

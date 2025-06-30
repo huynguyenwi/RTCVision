@@ -31,6 +31,8 @@
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FrmMain));
             this.HWindowsMain = new HalconDotNet.HSmartWindowControl();
             this.panelControl1 = new DevExpress.XtraEditors.PanelControl();
+            this.lblStatusPLCRS = new DevExpress.XtraEditors.LabelControl();
+            this.lblReadyPLC = new DevExpress.XtraEditors.LabelControl();
             this.cbModel = new DevExpress.XtraEditors.ComboBoxEdit();
             this.labelControl1 = new DevExpress.XtraEditors.LabelControl();
             this.btnClose = new DevExpress.XtraEditors.SimpleButton();
@@ -39,8 +41,7 @@
             this.btnStop = new DevExpress.XtraEditors.SimpleButton();
             this.btnStart = new DevExpress.XtraEditors.SimpleButton();
             this.lblStatus = new DevExpress.XtraEditors.LabelControl();
-            this.btnStartPLC = new DevExpress.XtraEditors.SimpleButton();
-            this.btnStopPLC = new DevExpress.XtraEditors.SimpleButton();
+            this.labelControl2 = new DevExpress.XtraEditors.LabelControl();
             ((System.ComponentModel.ISupportInitialize)(this.panelControl1)).BeginInit();
             this.panelControl1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.cbModel.Properties)).BeginInit();
@@ -67,17 +68,18 @@
             // 
             // panelControl1
             // 
-            this.panelControl1.Appearance.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(192)))), ((int)(((byte)(192)))));
+            this.panelControl1.Appearance.BackColor = System.Drawing.SystemColors.ActiveCaption;
             this.panelControl1.Appearance.Options.UseBackColor = true;
             this.panelControl1.BorderStyle = DevExpress.XtraEditors.Controls.BorderStyles.NoBorder;
+            this.panelControl1.Controls.Add(this.lblStatusPLCRS);
+            this.panelControl1.Controls.Add(this.lblReadyPLC);
             this.panelControl1.Controls.Add(this.cbModel);
+            this.panelControl1.Controls.Add(this.labelControl2);
             this.panelControl1.Controls.Add(this.labelControl1);
             this.panelControl1.Controls.Add(this.btnClose);
             this.panelControl1.Controls.Add(this.btnVisionSettings);
             this.panelControl1.Controls.Add(this.btnModelManager);
-            this.panelControl1.Controls.Add(this.btnStopPLC);
             this.panelControl1.Controls.Add(this.btnStop);
-            this.panelControl1.Controls.Add(this.btnStartPLC);
             this.panelControl1.Controls.Add(this.btnStart);
             this.panelControl1.Dock = System.Windows.Forms.DockStyle.Top;
             this.panelControl1.Location = new System.Drawing.Point(0, 0);
@@ -87,6 +89,32 @@
             this.panelControl1.RightToLeft = System.Windows.Forms.RightToLeft.No;
             this.panelControl1.Size = new System.Drawing.Size(1619, 110);
             this.panelControl1.TabIndex = 1;
+            // 
+            // lblStatusPLCRS
+            // 
+            this.lblStatusPLCRS.Appearance.Font = new System.Drawing.Font("Tahoma", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblStatusPLCRS.Appearance.Options.UseFont = true;
+            this.lblStatusPLCRS.Location = new System.Drawing.Point(377, 33);
+            this.lblStatusPLCRS.Name = "lblStatusPLCRS";
+            this.lblStatusPLCRS.Size = new System.Drawing.Size(47, 21);
+            this.lblStatusPLCRS.TabIndex = 10;
+            this.lblStatusPLCRS.Text = "Status";
+            // 
+            // lblReadyPLC
+            // 
+            this.lblReadyPLC.Appearance.BackColor = System.Drawing.Color.Gray;
+            this.lblReadyPLC.Appearance.Font = new System.Drawing.Font("Tahoma", 13.8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblReadyPLC.Appearance.ForeColor = System.Drawing.Color.White;
+            this.lblReadyPLC.Appearance.Options.UseBackColor = true;
+            this.lblReadyPLC.Appearance.Options.UseFont = true;
+            this.lblReadyPLC.Appearance.Options.UseForeColor = true;
+            this.lblReadyPLC.Appearance.Options.UseTextOptions = true;
+            this.lblReadyPLC.Appearance.TextOptions.HAlignment = DevExpress.Utils.HorzAlignment.Center;
+            this.lblReadyPLC.AutoSizeMode = DevExpress.XtraEditors.LabelAutoSizeMode.None;
+            this.lblReadyPLC.Location = new System.Drawing.Point(349, 33);
+            this.lblReadyPLC.Name = "lblReadyPLC";
+            this.lblReadyPLC.Size = new System.Drawing.Size(22, 21);
+            this.lblReadyPLC.TabIndex = 3;
             // 
             // cbModel
             // 
@@ -122,7 +150,7 @@
             this.labelControl1.Appearance.ForeColor = System.Drawing.Color.White;
             this.labelControl1.Appearance.Options.UseFont = true;
             this.labelControl1.Appearance.Options.UseForeColor = true;
-            this.labelControl1.Location = new System.Drawing.Point(860, 13);
+            this.labelControl1.Location = new System.Drawing.Point(860, 12);
             this.labelControl1.Name = "labelControl1";
             this.labelControl1.Size = new System.Drawing.Size(119, 28);
             this.labelControl1.TabIndex = 7;
@@ -171,7 +199,7 @@
             this.btnStop.Appearance.Font = new System.Drawing.Font("Tahoma", 13.8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnStop.Appearance.Options.UseFont = true;
             this.btnStop.ImageOptions.SvgImage = ((DevExpress.Utils.Svg.SvgImage)(resources.GetObject("btnStop.ImageOptions.SvgImage")));
-            this.btnStop.Location = new System.Drawing.Point(205, 33);
+            this.btnStop.Location = new System.Drawing.Point(191, 33);
             this.btnStop.Name = "btnStop";
             this.btnStop.Size = new System.Drawing.Size(129, 53);
             this.btnStop.TabIndex = 1;
@@ -209,29 +237,18 @@
             this.lblStatus.Text = "OK";
             this.lblStatus.Visible = false;
             // 
-            // btnStartPLC
+            // labelControl2
             // 
-            this.btnStartPLC.Appearance.Font = new System.Drawing.Font("Tahoma", 13.8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnStartPLC.Appearance.Options.UseFont = true;
-            this.btnStartPLC.ImageOptions.SvgImage = ((DevExpress.Utils.Svg.SvgImage)(resources.GetObject("simpleButton1.ImageOptions.SvgImage")));
-            this.btnStartPLC.Location = new System.Drawing.Point(416, 33);
-            this.btnStartPLC.Name = "btnStartPLC";
-            this.btnStartPLC.Size = new System.Drawing.Size(168, 53);
-            this.btnStartPLC.TabIndex = 0;
-            this.btnStartPLC.Text = "Start PLC";
-            this.btnStartPLC.Click += new System.EventHandler(this.btnStartPLC_Click);
-            // 
-            // btnStopPLC
-            // 
-            this.btnStopPLC.Appearance.Font = new System.Drawing.Font("Tahoma", 13.8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnStopPLC.Appearance.Options.UseFont = true;
-            this.btnStopPLC.ImageOptions.SvgImage = ((DevExpress.Utils.Svg.SvgImage)(resources.GetObject("simpleButton2.ImageOptions.SvgImage")));
-            this.btnStopPLC.Location = new System.Drawing.Point(641, 33);
-            this.btnStopPLC.Name = "btnStopPLC";
-            this.btnStopPLC.Size = new System.Drawing.Size(169, 53);
-            this.btnStopPLC.TabIndex = 1;
-            this.btnStopPLC.Text = "Stop PLC";
-            this.btnStopPLC.Click += new System.EventHandler(this.btnStopPLC_Click);
+            this.labelControl2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.labelControl2.Appearance.Font = new System.Drawing.Font("Tahoma", 19.8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.labelControl2.Appearance.ForeColor = System.Drawing.SystemColors.Highlight;
+            this.labelControl2.Appearance.Options.UseFont = true;
+            this.labelControl2.Appearance.Options.UseForeColor = true;
+            this.labelControl2.Location = new System.Drawing.Point(482, 37);
+            this.labelControl2.Name = "labelControl2";
+            this.labelControl2.Size = new System.Drawing.Size(307, 40);
+            this.labelControl2.TabIndex = 7;
+            this.labelControl2.Text = "VISION PROGRAM";
             // 
             // FrmMain
             // 
@@ -267,7 +284,8 @@
         private DevExpress.XtraEditors.LabelControl labelControl1;
         private DevExpress.XtraEditors.LabelControl lblStatus;
         private DevExpress.XtraEditors.ComboBoxEdit cbModel;
-        private DevExpress.XtraEditors.SimpleButton btnStopPLC;
-        private DevExpress.XtraEditors.SimpleButton btnStartPLC;
+        private DevExpress.XtraEditors.LabelControl lblReadyPLC;
+        private DevExpress.XtraEditors.LabelControl lblStatusPLCRS;
+        private DevExpress.XtraEditors.LabelControl labelControl2;
     }
 }

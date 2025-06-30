@@ -14,6 +14,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.Button;
 
 namespace RTCVision
 {
@@ -23,6 +24,7 @@ namespace RTCVision
         {
             InitializeComponent();
         }
+        #region VARIABLES
 
         private const int _roundNumber = 3;
 
@@ -68,13 +70,18 @@ namespace RTCVision
 
         private HObject _matchingOut_ContoursTrain = new HObject();
         private HObject _matchingOut_ContoursFind = new HObject();
+        
+        private string _ipTCP = "127.0.0.1";
+        private int _portTCP = 4000;
+        private string _triggerTCP = "C";
 
-        private string _ipAddress = "127.0.0.1";
-        private int _portNumber = 4000; 
         private string _comPort = "COM2";
         private int _baudRate = 9600;
         private string _triggerValue = "C";
 
+        private string _plcIpAddress = "192.168.9.99";
+        private int _plcPortNumber = 12234;
+      
 
         private HWindow _Window;
         bool _isLive = false;
@@ -85,34 +92,113 @@ namespace RTCVision
         private MyDahuaCamera _dahuaCamera = new MyDahuaCamera();
         private Thread _liveThread;
 
+        #region PLC Register Definitions
+        // Định nghĩa các thanh ghi PLC
+        private string _Plc_Ready_Register = "D100";
+        private string _Plc_Busy_Register = "D101";
+        private string _Plc_Finish_Register = "D102";
+        private string _Plc_Ok_Register = "D109";
+        private string _Plc_Ng_Register = "D110";
+        private string _Plc_Trigger_Register = "D120";
+        #endregion
+
+        #endregion
+
 
         #region FUNCTIONS
 
         private void SaveTriggerInfo()
         {
-            // Lưu trữ thông số matching
-            /*            Lib.ExecuteQuery(
-                            $"DELETE FROM {CTableName.TriggerSettings} WHERE {CColName.ModelId} = '{CurrentModelId}'");
-                        Lib.ExecuteQuery($"INSERT INTO {CTableName.TriggerSettings} VALUES('{CurrentModelId}','{_ipAddress}',{_portNumber},'{_triggerValue}')");*/
-
-            _comPort = txtIpCom.Text; 
-            _baudRate = Lib.ToInt(txtPortBaudrate.Text);
+            _comPort = txtCom.Text; 
+            _baudRate = Lib.ToInt(txtBaudrate.Text);
+            _triggerValue = txtTriggerValue.Text;
 
             Lib.ExecuteQuery(
-                $"DELETE FROM {CTableName.TriggerSettings} WHERE {CColName.ModelId} = '{CurrentModelId}'");
-            Lib.ExecuteQuery($"INSERT INTO {CTableName.TriggerSettings} VALUES('{CurrentModelId}','{_comPort}',{_baudRate},'{_triggerValue}')");
+                $"DELETE FROM {CTableName.RS232Settings} WHERE {CColName.ModelId} = '{CurrentModelId}'");
+            Lib.ExecuteQuery($"INSERT INTO {CTableName.RS232Settings} VALUES('{CurrentModelId}','{_comPort}',{_baudRate},'{_triggerValue}')");
+
+            MessageBox.Show("RS232 Trigger settings saved successfully.", "Successfully!", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
+
+        private void SaveRegisterInfo()
+        {
+            _Plc_Ready_Register = txtReady.Text;
+            _Plc_Busy_Register = txtBusy.Text;
+            _Plc_Finish_Register = txtFinish.Text;
+            _Plc_Ok_Register = txtOK.Text;
+            _Plc_Ng_Register = txtNG.Text;
+            _Plc_Trigger_Register = txtTriggerRegister.Text;
+            _plcIpAddress = txtIpPLC.Text;
+            _plcPortNumber = Lib.ToInt(txtPortPLC.Text);
+
+
+        Lib.ExecuteQuery(
+                $"DELETE FROM RegisterSettings WHERE {CColName.ModelId} = '{CurrentModelId}'");
+
+            string sql = $"INSERT INTO RegisterSettings VALUES('{CurrentModelId}','{_Plc_Ready_Register}','{_Plc_Busy_Register}','{_Plc_Finish_Register}','{_Plc_Ok_Register}','{_Plc_Ng_Register}','{_Plc_Trigger_Register}','{_plcIpAddress}',{_plcPortNumber})";
+            Lib.ExecuteQuery(sql);
+            MessageBox.Show("Register PLC settings saved successfully.", "Successfully!", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private void SaveTriggerTCPInfo()
+        { 
+            _ipTCP = txtIpTCP.Text;
+            _portTCP = Lib.ToInt(txtPortTCP.Text);
+            _triggerTCP = txtTriggerTCP.Text;
+
+            Lib.ExecuteQuery(
+                $"DELETE FROM TCPSetting WHERE {CColName.ModelId} = '{CurrentModelId}'");
+            string sql = $"INSERT INTO TCPSetting VALUES('{CurrentModelId}','{_ipTCP}',{_portTCP},'{_triggerTCP}')";
+            Lib.ExecuteQuery(sql);
+            MessageBox.Show("TCP Trigger settings saved successfully.", "Successfully!", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
         private void LoadTriggerInfo()
         {
-            _comPort = Lib.ExecuteScalar($"SELECT {CColName.IpAddress} FROM {CTableName.TriggerSettings} WHERE {CColName.ModelId}='{CurrentModelId}'").ToString();
+            _comPort = Lib.ExecuteScalar($"SELECT {CColName.ComPort} FROM {CTableName.RS232Settings} WHERE {CColName.ModelId}='{CurrentModelId}'").ToString();
             _baudRate = Lib.ToInt(Lib.ExecuteScalar(
-                $"SELECT {CColName.PortNumber} FROM {CTableName.TriggerSettings} WHERE {CColName.ModelId}='{CurrentModelId}'"));
-            _triggerValue = Lib.ExecuteScalar($"SELECT {CColName.TriggerValue} FROM {CTableName.TriggerSettings} WHERE {CColName.ModelId}='{CurrentModelId}'").ToString();
+                $"SELECT {CColName.BaudRate} FROM {CTableName.RS232Settings} WHERE {CColName.ModelId}='{CurrentModelId}'"));
+            _triggerValue = Lib.ExecuteScalar($"SELECT {CColName.TriggerValue} FROM {CTableName.RS232Settings} WHERE {CColName.ModelId}='{CurrentModelId}'").ToString();
 
-            txtIpCom.Text = _comPort;
-            txtPortBaudrate.Text = _baudRate.ToString();
+            txtCom.Text = _comPort;
+            txtBaudrate.Text = _baudRate.ToString();
             txtTriggerValue.Text = _triggerValue;
         }
+
+        private void LoadRegisterInfo()
+        {
+              _Plc_Ready_Register = Lib.ExecuteScalar($"SELECT {CColName.ReadyRegister} FROM RegisterSettings WHERE {CColName.ModelId}='{CurrentModelId}'").ToString();
+              _Plc_Busy_Register = Lib.ExecuteScalar($"SELECT {CColName.BusyRegister} FROM RegisterSettings WHERE {CColName.ModelId}='{CurrentModelId}'").ToString();
+              _Plc_Finish_Register = Lib.ExecuteScalar($"SELECT {CColName.FinishRegister} FROM RegisterSettings WHERE {CColName.ModelId}='{CurrentModelId}'").ToString();
+              _Plc_Ok_Register = Lib.ExecuteScalar($"SELECT {CColName.OKRegister} FROM RegisterSettings WHERE {CColName.ModelId}='{CurrentModelId}'").ToString();
+              _Plc_Ng_Register = Lib.ExecuteScalar($"SELECT {CColName.NGRegister} FROM RegisterSettings WHERE {CColName.ModelId}='{CurrentModelId}'").ToString();
+              _Plc_Trigger_Register = Lib.ExecuteScalar($"SELECT {CColName.TriggerRegister} FROM RegisterSettings WHERE {CColName.ModelId}='{CurrentModelId}'").ToString();
+              _plcIpAddress = Lib.ExecuteScalar($"SELECT {CColName.IpPLC} FROM RegisterSettings WHERE {CColName.ModelId}='{CurrentModelId}'").ToString();
+              _plcPortNumber = Lib.ToInt(Lib.ExecuteScalar($"SELECT {CColName.PortPLC} FROM RegisterSettings WHERE {CColName.ModelId}='{CurrentModelId}'"));
+
+
+              txtReady.Text = _Plc_Ready_Register;
+              txtBusy.Text = _Plc_Busy_Register;
+              txtFinish.Text = _Plc_Finish_Register;
+              txtOK.Text = _Plc_Ok_Register;
+              txtNG.Text = _Plc_Ng_Register;
+              txtTriggerRegister.Text = _Plc_Trigger_Register;
+              txtIpPLC.Text = _plcIpAddress;
+              txtPortPLC.Text = _plcPortNumber.ToString();
+         }
+
+        private void LoadTriggerTCPInfo()
+        {
+            _ipTCP = Lib.ExecuteScalar($"SELECT {CColName.IpTCP} FROM TCPSetting WHERE {CColName.ModelId}='{CurrentModelId}'").ToString();
+            _portTCP = Lib.ToInt(Lib.ExecuteScalar(
+                $"SELECT {CColName.PortTCP} FROM TCPSetting WHERE {CColName.ModelId}='{CurrentModelId}'"));
+            _triggerTCP = Lib.ExecuteScalar($"SELECT {CColName.TriggerTCP} FROM TCPSetting WHERE {CColName.ModelId}='{CurrentModelId}'").ToString();
+
+            txtIpTCP.Text = _ipTCP;
+            txtPortTCP.Text = _portTCP.ToString();
+            txtTriggerTCP.Text = _triggerTCP;
+        }
+
 
         /// <summary>
         /// Lấy thông tin model hiển thị lên cửa sổ
@@ -135,16 +221,23 @@ namespace RTCVision
             LoadDict();
 
             LoadTriggerInfo();
+
+            LoadRegisterInfo();
+
+            LoadTriggerTCPInfo();
+
         }
         /// <summary>
         /// Lấy thông tin camera
         /// </summary>
         private void LoadCameraInfo()
         {
-            _interfaceName = Lib.ExecuteScalar($"SELECT InterfaceName FROM ModelCam WHERE ModelID='{CurrentModelId}'").ToString();
-            _deviceName = Lib.ExecuteScalar($"SELECT DeviceName FROM ModelCam WHERE ModelID='{CurrentModelId}'").ToString();
-            cbInterface.Properties.Items.Clear();
-            cbDevice.Properties.Items.Clear();
+            _interfaceName = Lib.ExecuteScalar(
+                 $"SELECT InterfaceName FROM ModelCam WHERE ModelID='{CurrentModelId}'").ToString();
+
+            _deviceName = Lib.ExecuteScalar(
+                $"SELECT DeviceName FROM ModelCam WHERE ModelID='{CurrentModelId}'").ToString();
+
             cbInterface.Text = _interfaceName;
             cbDevice.Text = _deviceName;
         }
@@ -424,12 +517,15 @@ namespace RTCVision
 
         private void SnapImage()
         {
-            _hImage = GlobFunc.SnapImage(_frameGrabber);
-            if (_hImage != null && _hImage.Key != IntPtr.Zero)
-            {
-                Lib.SmartSetPart(_hImage, HWindowsMain);
-                HWindowsMain.HalconWindow.DispImage(_hImage);
-            }
+            //Cũ
+             _hImage = GlobFunc.SnapImage(_frameGrabber);
+             if (_hImage != null && _hImage.Key != IntPtr.Zero)
+             {
+                 Lib.SmartSetPart(_hImage, HWindowsMain);
+                 HWindowsMain.HalconWindow.DispImage(_hImage);
+             }
+
+           
         }
         public void ResetControls()
         {
@@ -700,111 +796,168 @@ namespace RTCVision
 
         private void btnDetect_Click(object sender, EventArgs e)
         {
-            /*cbInterface.Items.Clear();
-            List<string> interfaces = GetAvailableInterface();
-            foreach (string item in interfaces)
-                cbInterface.Items.Add(item);
-            if (interfaces.Count > 0)
-                cbInterface.SelectedIndex = (interfaces.Count - 1);*/
+            cbInterface.Properties.Items.Clear();
+            cbDevice.Properties.Items.Clear();
 
-            cbInterface.Properties.Items.Clear(); 
+            // Load Halcon interfaces
+            var interfaces = GetAvailableInterface();
+            foreach (var item in interfaces)
+                cbInterface.Properties.Items.Add(item);
 
-            List<string> interfaces = GetAvailableInterface();
+           // Thêm Cam (Dahua)
+            cbInterface.Properties.Items.Add("Cam SDK Dahua");
 
-            foreach (string item in interfaces)
-                cbInterface.Properties.Items.Add(item); 
+            if (cbInterface.Properties.Items.Count > 0)
+                cbInterface.SelectedIndex = 0;
 
-            if (interfaces.Count > 0)
-                cbInterface.SelectedIndex = interfaces.Count - 1;
+           
         }
 
         private void btnLive_Click(object sender, EventArgs e)
         {
-            if (_frameGrabber == null) return;
-            if (!_isLive)
+
+            if (_interfaceName == "Cam SDK Dahua")
             {
-                _isLive = true;
-                LiveCamera();
-                btnSnap.Enabled = false;
+                if (!_isLive)
+                {
+                    _isLive = true;
+                    LiveCameraDahua();
+                    btnSnap.Enabled = false;
+                }
+                else
+                {
+                    _isLive = false;
+                    _liveThread?.Join();
+                    btnSnap.Enabled = true;
+                }
             }
-            else
+            else //Halcon
             {
-                _isLive = false;
-                btnSnap.Enabled = true;
+                if (_frameGrabber == null) return;
+                if (!_isLive)
+                {
+                    _isLive = true;
+                    LiveCamera();
+                    btnSnap.Enabled = false;
+                }
+                else
+                {
+                    _isLive = false;
+                    btnSnap.Enabled = true;
+                }
             }
         }
 
 
         private void cbInterface_SelectedIndexChanged(object sender, EventArgs e)
         {
-            /*            string interfaceName = Lib.ToString(cbInterface.SelectedItem);
-                        List<Device> devices = _devices.Where(o => o.InterfaceName == interfaceName).ToList();
-                        cbDevice.DataSource = devices;
-                        cbDevice.DisplayMember = "DeviceName";
-                        cbDevice.ValueMember = "DeviceName";*/
-
-           
-            string interfaceName = Lib.ToString(cbInterface.SelectedItem);
-            List<Device> devices = _devices.Where(o => o.InterfaceName == interfaceName).ToList();
+            string selectedInterface = cbInterface.Text;
             cbDevice.Properties.Items.Clear();
-            foreach (var device in devices)
-            {
-                cbDevice.Properties.Items.Add(device.DeviceName);
-            }
-            if (devices.Count > 0)
-                cbDevice.SelectedIndex = 0;
 
+            if (selectedInterface == "Cam SDK Dahua")
+            {
+                // Dahua camera
+                var dahuaDevices = MyDahuaCamera.GetListDeviceInfoNames();
+                foreach (var device in dahuaDevices)
+                    cbDevice.Properties.Items.Add(device);
+
+                if (cbDevice.Properties.Items.Count > 0)
+                    cbDevice.SelectedIndex = 0;
+            }
+            else
+            {
+                // HALCON camera
+                var devices = _devices.Where(o => o.InterfaceName == selectedInterface).ToList();
+                foreach (var device in devices)
+                    cbDevice.Properties.Items.Add(device.DeviceName);
+
+                if (cbDevice.Properties.Items.Count > 0)
+                    cbDevice.SelectedIndex = 0;
+            }
         }
 
         private void btnConnectCamera_Click(object sender, EventArgs e)
         {
             string errMessage = string.Empty;
 
-            if (cbDevice.Text.Trim() == "")
+            _interfaceName = cbInterface.Text.Trim();
+            _deviceName = cbDevice.Text.Trim();
+
+            if (_interfaceName == "")
             {
-                MessageBox.Show("Please choose a Interface!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Please choose an Interface!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
-            if (cbDevice.Text.Trim() == "")
+            if (_deviceName == "")
             {
-                MessageBox.Show("Please choose a Camera!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error); ;
+                MessageBox.Show("Please choose a Camera!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
 
-            if (btnConnectCamera.Text.ToLower() == "Connect".ToLower())
-            {
-                _interfaceName = cbInterface.Text;
-                _deviceName = cbDevice.Text;
 
-                if (!GlobFunc.ConnectCamera(_interfaceName, _deviceName, out _frameGrabber, out errMessage))
+
+            if (_interfaceName == "Cam SDK Dahua")
+            {
+                if (btnConnectCamera.Text == "Connect")
                 {
-                    MessageBox.Show(errMessage, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    return;
+                    if (!_dahuaCamera.Open(_deviceName))
+                    {
+                        MessageBox.Show("Dahua connect failed");
+                        return;
+                    }
+                    _dahuaCamera.GrabberMode = "ASync";
+                    _dahuaCamera.StartGrabbing();
+                    btnConnectCamera.Text = "Disconnect";
+                    btnSnap.Enabled = btnLive.Enabled = true;
+                    SnapImage(); // Snap ảnh đầu tiên
+                }
+                else
+                {
+                    _dahuaCamera.StopGrabbing();
+                    _dahuaCamera.Close();
+                    btnConnectCamera.Text = "Connect";
+                    btnSnap.Enabled = btnLive.Enabled = false;
+                }
+            }
+            else //Halcon
+            {
+
+                if (btnConnectCamera.Text.ToLower() == "Connect".ToLower())
+                {
+                    _interfaceName = cbInterface.Text;
+                    _deviceName = cbDevice.Text;
+
+                    if (!GlobFunc.ConnectCamera(_interfaceName, _deviceName, out _frameGrabber, out errMessage))
+                    {
+                        MessageBox.Show(errMessage, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        return;
+                    }
+
+                    btnConnectCamera.Text = "Disconnect";
+                    btnConnectCamera.BackColor = Color.Green;
+                    btnSnap.Enabled = true;
+                    btnLive.Enabled = true;
+                    SnapImage();
+                }
+                else
+                {
+                    if (_isLive)
+                        btnLive_Click(null, null);
+
+                    Thread.Sleep(1000);
+                    GlobFunc.DisconnectCamera(_frameGrabber);
+
+                    btnConnectCamera.Text = "Connect";
+                    btnConnectCamera.BackColor = SystemColors.ButtonFace;
+
+                    btnLive.BackColor = SystemColors.Control;
+                    cbInterface.Enabled = cbDevice.Enabled = btnDetect.Enabled = true;
+                    btnLive.Enabled = btnSnap.Enabled = false;
+                    _hImage?.Dispose();
+                    HWindowsMain.HalconWindow.DetachBackgroundFromWindow();
+                    HWindowsMain.HalconWindow.ClearWindow();
                 }
 
-                btnConnectCamera.Text = "Disconnect";
-                btnConnectCamera.BackColor = Color.Green;
-                btnSnap.Enabled = true;
-                btnLive.Enabled = true;
-                SnapImage();
-            }
-            else
-            {
-                if (_isLive)
-                    btnLive_Click(null, null);
-
-                Thread.Sleep(1000);
-                GlobFunc.DisconnectCamera(_frameGrabber);
-
-                btnConnectCamera.Text = "Connect";
-                btnConnectCamera.BackColor = SystemColors.ButtonFace;
-
-                btnLive.BackColor = SystemColors.Control;
-                cbInterface.Enabled = cbDevice.Enabled = btnDetect.Enabled = true;
-                btnLive.Enabled = btnSnap.Enabled = false;
-                _hImage?.Dispose();
-                HWindowsMain.HalconWindow.DetachBackgroundFromWindow();
-                HWindowsMain.HalconWindow.ClearWindow();
             }
 
         }
@@ -825,58 +978,88 @@ namespace RTCVision
         {
             try
             {
-                if (_frameGrabber == null)
+                if (_interfaceName == "Cam SDK Dahua")
                 {
-                    MessageBox.Show("Please Connect To Camera Before Snap Image");
-                    return;
+                    SnapImageDahua();
                 }
-                SnapImage();
+                else
+                {
+                    if (_frameGrabber == null)
+                    {
+                        MessageBox.Show("Please Connect To Camera Before Snap Image");
+                        return;
+                    }
+                    SnapImage();
+                }
             }
-            catch
+            catch (Exception ex)
             {
-                MessageBox.Show("Snap Image Fail!!!");
+                MessageBox.Show("Snap Image Fail!!!\n" + ex.Message);
             }
         }
 
         private void FrmVisionSettings_Load(object sender, EventArgs e)
         {
             lblPassFailM.Text = string.Empty;
+            // Đặt lại trạng thái radio theo GlobVar.ChooseRadio
+            switch (GlobVar.ChooseRadio)
+            {
+                case "RS232":
+                    rdRS232.Checked = true;
+                    break;
+                case "PLC":
+                    rdPLC.Checked = true;
+                    break;
+                case "TCP":
+                    rdTCP.Checked = true;
+                    break;
+                default:
+                    rdTCP.Checked = true;
+                    break;
+            }
+
+            UpdateGroupBoxState(); 
         }
+
 
         private void btnSaveCamera_Click(object sender, EventArgs e)
         {
+            
             if (cbInterface.Text.Trim() == "")
-            {
-                MessageBox.Show("Please choose an Interface.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
-            }
-            if (cbDevice.Text.Trim() == "")
-            {
-                MessageBox.Show("Please choose a Camera.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
-            }
+             {
+                 MessageBox.Show("Please choose an Interface.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                 return;
+             }
+             if (cbDevice.Text.Trim() == "")
+             {
+                 MessageBox.Show("Please choose a Camera.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                 return;
+             }
 
-            _interfaceName = cbInterface.Text;
-            _deviceName = cbDevice.Text;
+             _interfaceName = cbInterface.Text;
+             _deviceName = cbDevice.Text;
 
-            DataTable dataTable = Lib.GetTableData($"SELECT * FROM {CTableName.ModelCam} WHERE {CColName.ModelId} = '{CurrentModelId}'");
-            if (dataTable.Rows.Count == 0)
-            {
-                if (Lib.ExecuteQuery(
-                    $"INSERT INTO {CTableName.ModelCam} VALUES ('{Guid.NewGuid()}', '{CurrentModelId}', '{_interfaceName}','{_deviceName}','')") == 1)
-                    MessageBox.Show(" Save Successful!!!");
-                else
-                    MessageBox.Show("Save Camera Setting fail !");
-            }
-            else
-            {
-                Guid camId = Lib.ToGuid(dataTable.Rows[0][CColName.Id]);
-                if (Lib.ExecuteQuery(
-                    $"UPDATE {CTableName.ModelCam} SET {CColName.InterfaceName} = '{_interfaceName}', {CColName.DeviceName} = '{_deviceName}' WHERE {CColName.Id} = '{camId}'") == 1)
-                    MessageBox.Show(" Save Successful!!!");
-                else
-                    MessageBox.Show("Save Camera Setting fail !");
-            }
+             DataTable dataTable = Lib.GetTableData($"SELECT * FROM {CTableName.ModelCam} WHERE {CColName.ModelId} = '{CurrentModelId}'");
+             if (dataTable.Rows.Count == 0)
+             {
+                 if (Lib.ExecuteQuery(
+                     $"INSERT INTO {CTableName.ModelCam} VALUES ('{Guid.NewGuid()}', '{CurrentModelId}', '{_interfaceName}','{_deviceName}','')") == 1)
+                     MessageBox.Show(" Save Successful!!!");
+                 else
+                     MessageBox.Show("Save Camera Setting fail !");
+             }
+             else
+             {
+                 Guid camId = Lib.ToGuid(dataTable.Rows[0][CColName.Id]);
+                 if (Lib.ExecuteQuery(
+                     $"UPDATE {CTableName.ModelCam} SET {CColName.InterfaceName} = '{_interfaceName}', {CColName.DeviceName} = '{_deviceName}' WHERE {CColName.Id} = '{camId}'") == 1)
+                     MessageBox.Show(" Save Successful!!!");
+                 else
+                     MessageBox.Show("Save Camera Setting fail !");
+             }
+
+           
+
         }
 
         private void FrmVisionSettings_FormClosing(object sender, FormClosingEventArgs e)
@@ -886,10 +1069,6 @@ namespace RTCVision
             Thread.Sleep(1000);
             GlobFunc.DisconnectCamera(_frameGrabber);
 
-            //if (GlobVar.TCP.IsConnected)
-            //    GlobVar.TCP.Disconnect();
-            //if (InputTextID.Length != 0)
-            //    HOperatorSet.ClearHandle(InputTextID);
             DialogResult = DialogResult.OK;
 
 
@@ -1181,19 +1360,19 @@ namespace RTCVision
 
         private void btnSaveTrigger_Click(object sender, EventArgs e)
         {
-            if (txtIpCom.Text.Trim() == "")
+            if (txtCom.Text.Trim() == "")
             {
                 MessageBox.Show("Ip Address (Or Com) can't empty.", "Warning", MessageBoxButtons.OK,
                     MessageBoxIcon.Warning);
                 return;
             }
-            if (txtPortBaudrate.Text.Trim() == "")
+            if (txtBaudrate.Text.Trim() == "")
             {
                 MessageBox.Show("Port Number (Or Baudrate) can't empty.", "Warning", MessageBoxButtons.OK,
                     MessageBoxIcon.Warning);
                 return;
             }
-            if (!int.TryParse(txtPortBaudrate.Text.Trim(), out int portNumber))
+            if (!int.TryParse(txtBaudrate.Text.Trim(), out int portNumber))
             {
                 MessageBox.Show("Port Number (Or Baudrate) must be a number.", "Warning", MessageBoxButtons.OK,
                     MessageBoxIcon.Warning);
@@ -1208,59 +1387,16 @@ namespace RTCVision
             SaveTriggerInfo();
         }
 
-        private void btnConnectDahua_Click(object sender, EventArgs e)
-        {
-
-            if (cbDevice.Text.Trim() == "")
-            {
-                MessageBox.Show("Please choose a Camera!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
-            }
-
-            if (btnConnectCamera.Text.ToLower() == "connect")
-            {
-                string deviceName = cbDeviceDahua.Text.Trim();
-                bool result = _dahuaCamera.Open(deviceName);
-
-                if (!result)
-                {
-                    MessageBox.Show("Failed to connect Dahua camera.\n" + _dahuaCamera.ErrorMessage,
-                        "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    return;
-                }
-
-                _dahuaCamera.GrabberMode = "ASync"; // hoặc "Sync" tùy bạn dùng
-                _dahuaCamera.StartGrabbing();
-
-                btnConnectCamera.Text = "Disconnect";
-                btnConnectCamera.BackColor = Color.Green;
-                btnSnap.Enabled = true;
-                btnLive.Enabled = true;
-
-                SnapImageDahua();
-            }
-            else
-            {
-                _dahuaCamera.StopGrabbing();
-                _dahuaCamera.Close();
-
-                btnConnectCamera.Text = "Connect";
-                btnConnectCamera.BackColor = SystemColors.Control;
-
-                btnSnap.Enabled = false;
-                btnLive.Enabled = false;
-                HWindowsMain.HalconWindow.ClearWindow();
-            }
-        }
+       
 
         private void SnapImageDahua()
         {
-            HImage image = _dahuaCamera.Snap(true); // true nếu dùng phần mềm để trigger
+            HImage image = _dahuaCamera.Snap(true); 
 
             if (image != null && image.Key != IntPtr.Zero)
             {
                 _hImage = image;
-                Lib.SmartSetPart(_hImage, HWindowsMain); // Nếu bạn có hàm crop
+                Lib.SmartSetPart(_hImage, HWindowsMain); 
                 HWindowsMain.HalconWindow.DispImage(_hImage);
             }
             else
@@ -1294,48 +1430,115 @@ namespace RTCVision
             _liveThread.IsBackground = true;
             _liveThread.Start();
         }
-       
-        private void btnSnapDahua_Click(object sender, EventArgs e)
+
+        private void Radio_CheckedChanged(object sender, EventArgs e)
         {
-            try
+            System.Windows.Forms.RadioButton rd = sender as System.Windows.Forms.RadioButton;
+            if (rd != null && rd.Checked)
             {
-                SnapImageDahua();
-            }
-            catch
-            {
-                MessageBox.Show("Snap Image Fail!!!");
+                GlobVar.ChooseRadio = rd.Text;
+                UpdateGroupBoxState();
             }
         }
-
-        private void btnDetectDahua_Click(object sender, EventArgs e)
+        private void UpdateGroupBoxState()
         {
-            cbDeviceDahua.Properties.Items.Clear();
-
-            var cameraList = MyDahuaCamera.GetListDeviceInfoNames();
-            foreach (string camName in cameraList)
-                cbDeviceDahua.Properties.Items.Add(camName);
-
-            if (cameraList.Count > 0)
-                cbDeviceDahua.SelectedIndex = 0;
-        }
-
-        private void btnLiveDahua_Click(object sender, EventArgs e)
-        {
-            if (!_isLive)
+            if (rdRS232.Checked)
             {
-                _isLive = true;
-                LiveCameraDahua();
-                btnLiveDahua.Text = "Stop Live";
-                btnSnapDahua.Enabled = false;
+                grbRS232.Enabled = true;
+                grbPLC.Enabled = false;
+                grbTCP.Enabled = false;
+            }
+            else if (rdPLC.Checked)
+            {
+                grbRS232.Enabled = false;
+                grbPLC.Enabled = true;
+                grbTCP.Enabled = false;
+            }
+            else if (rdTCP.Checked)
+            {
+                grbRS232.Enabled = false;
+                grbPLC.Enabled = false;
+                grbTCP.Enabled = true;
             }
             else
             {
-                _isLive = false;
-                _liveThread?.Join();
-                btnLiveDahua.Text = "Live";
-                btnSnapDahua.Enabled = true;
+                grbRS232.Enabled = false;
+                grbPLC.Enabled = false;
+                grbTCP.Enabled = false;
             }
         }
+
+        private void btnSaveResigter_Click(object sender, EventArgs e)
+        {
+            if (txtReady.Text.Trim() == "")
+            {
+                MessageBox.Show("Ready Register can't empty.", "Warning", MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+                return;
+            }
+            if (txtBusy.Text.Trim() == "")
+            {
+                MessageBox.Show("Busy Register can't empty.", "Warning", MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+                return;
+            }
+            if (txtFinish.Text.Trim() == "")
+            {
+                MessageBox.Show("Finish Register can't empty.", "Warning", MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+                return;
+            }
+            if (txtOK.Text.Trim() == "")
+            {
+                MessageBox.Show("OK Register can't empty.", "Warning", MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+                return;
+            }
+            if (txtNG.Text.Trim() == "")
+            {
+                MessageBox.Show("NG Register can't empty.", "Warning", MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+                return;
+            }
+            if (txtTriggerRegister.Text.Trim() == "")
+            {
+                MessageBox.Show("Trigger Register can't empty.", "Warning", MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+                return;
+            }
+
+            SaveRegisterInfo();
+        }
+
+        private void btnSaveTriggerTCP_Click(object sender, EventArgs e)
+        {
+            if (txtIpTCP.Text.Trim() == "")
+            {
+                MessageBox.Show("Ip Address can't empty.", "Warning", MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+                return;
+            }
+            if (txtPortTCP.Text.Trim() == "")
+            {
+                MessageBox.Show("Port Number can't empty.", "Warning", MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+                return;
+            }
+            if (!int.TryParse(txtPortTCP.Text.Trim(), out int portNumber))
+            {
+                MessageBox.Show("Port Number must be a number.", "Warning", MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+                return;
+            }
+            if (txtTriggerTCP.Text.Trim() == "")
+            {
+                MessageBox.Show("Trigger Value can't empty.", "Warning", MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
+                return;
+            }
+            SaveTriggerTCPInfo();
+        }
+ 
     }
 
     public class Device

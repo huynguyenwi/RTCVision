@@ -19,5 +19,7 @@ namespace RTCVision
         public static HDevEngine MyEngine;
         public static bool DebugMode = true;
         public static HImage Image = null;
+
+        public static string ChooseRadio = "";
     }
 }
